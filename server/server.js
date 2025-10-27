@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/db');
 
 // Load environment variables
@@ -11,9 +12,14 @@ connectDB();
 
 const app = express();
 
-// CORS Configuration
+// CORS Configuration - for dev and for prod
 app.use(cors({
-   origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'https://shophub-e-com.onrender.com'],
+   origin: [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'https://shophub-e-com.onrender.com' // your deployed frontend
+   ],
    credentials: true,
    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
    allowedHeaders: ['Content-Type', 'Authorization']
@@ -23,14 +29,21 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// API Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/users', require('./routes/users'));
 
+if (process.env.NODE_ENV === 'production') {
+   app.use(express.static(path.join(__dirname, 'client', 'dist')));
+   app.get('*', (req, res) => {
+      res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+   });
+}
+
 // Test route
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
    res.json({
       message: 'ShopHub API is running...',
       status: 'active'
@@ -47,6 +60,7 @@ app.use((err, req, res, next) => {
    });
 });
 
+// Main port logic for Render or local
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
