@@ -3641,3 +3641,11 @@ main {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+.cart-summary .btn-checkout {
+  margin-top: 24px;
+}
+.admin-panel {
+  box-shadow: 0 10px 40px rgba(51,51,255,0.13);
+  border: 2px solid var(--primary);
+  background: var(--bg-card);
+}

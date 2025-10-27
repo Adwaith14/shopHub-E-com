@@ -8,7 +8,11 @@ const AdminPanel = () => {
   const navigate = useNavigate();
   const { user, token, API_BASE } = useAuth();
   const [activeTab, setActiveTab] = useState('products');
-  
+
+  // Info message at panel top
+  const [panelMsg, setPanelMsg] = useState('');
+  const [panelMsgType, setPanelMsgType] = useState('success');
+
   // Products state
   const [products, setProducts] = useState([]);
   const [showProductForm, setShowProductForm] = useState(false);
@@ -25,19 +29,19 @@ const AdminPanel = () => {
 
   // Orders state
   const [orders, setOrders] = useState([]);
-  
+
   // Users state
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
-      alert('Access denied. Admin only!');
       navigate('/');
       return;
     }
     fetchProducts();
     fetchOrders();
     fetchUsers();
+    // eslint-disable-next-line
   }, [user, navigate]);
 
   // Fetch Products
@@ -49,7 +53,9 @@ const AdminPanel = () => {
         setProducts(data.products);
       }
     } catch (error) {
-      console.error('Error fetching products:', error);
+      setPanelMsg('Error fetching products');
+      setPanelMsgType('error');
+      setTimeout(() => setPanelMsg(''), 3000);
     }
   };
 
@@ -66,38 +72,38 @@ const AdminPanel = () => {
         setOrders(data.orders);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      setPanelMsg('Error fetching orders');
+      setPanelMsgType('error');
+      setTimeout(() => setPanelMsg(''), 3000);
     }
   };
 
-  // Fetch Users (you need to create this route in backend)
   const fetchUsers = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/users`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        setUsers(data.users);
+  try {
+    const response = await fetch(`${API_BASE}/users`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-    } catch (error) {
-      console.error('Error fetching users:', error);
+    });
+    const data = await response.json();
+    if (data.success) {
+      setUsers(data.users);
+      setPanelMsg('');
     }
-  };
+  } catch (error) {
+  }
+};
+
 
   // Handle Product Form
   const handleProductSubmit = async (e) => {
     e.preventDefault();
-    
     try {
       const url = editingProduct 
         ? `${API_BASE}/products/${editingProduct._id}`
         : `${API_BASE}/products`;
-      
+
       const method = editingProduct ? 'PUT' : 'POST';
-      
       const response = await fetch(url, {
         method,
         headers: {
@@ -113,9 +119,11 @@ const AdminPanel = () => {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
-        alert(editingProduct ? 'Product updated!' : 'Product created!');
+        setPanelMsg(editingProduct ? 'Product updated!' : 'Product created!');
+        setPanelMsgType('success');
+        setTimeout(() => setPanelMsg(''), 3000);
         setShowProductForm(false);
         setEditingProduct(null);
         setProductForm({
@@ -129,18 +137,21 @@ const AdminPanel = () => {
         });
         fetchProducts();
       } else {
-        alert(data.message || 'Error saving product');
+        setPanelMsg(data.message || 'Error saving product');
+        setPanelMsgType('error');
+        setTimeout(() => setPanelMsg(''), 3000);
       }
     } catch (error) {
-      console.error('Error saving product:', error);
-      alert('Error saving product');
+      setPanelMsg('Error saving product');
+      setPanelMsgType('error');
+      setTimeout(() => setPanelMsg(''), 3000);
     }
   };
 
   // Delete Product
   const handleDeleteProduct = async (productId) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-
+    setPanelMsg('');
+    setPanelMsgType('success');
     try {
       const response = await fetch(`${API_BASE}/products/${productId}`, {
         method: 'DELETE',
@@ -150,18 +161,28 @@ const AdminPanel = () => {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
-        alert('Product deleted!');
+        setPanelMsg('Product deleted!');
+        setPanelMsgType('success');
+        setTimeout(() => setPanelMsg(''), 3000);
         fetchProducts();
+      } else {
+        setPanelMsg('Failed to delete product');
+        setPanelMsgType('error');
+        setTimeout(() => setPanelMsg(''), 3000);
       }
     } catch (error) {
-      console.error('Error deleting product:', error);
+      setPanelMsg('Error deleting product');
+      setPanelMsgType('error');
+      setTimeout(() => setPanelMsg(''), 3000);
     }
   };
 
   // Toggle Stock Status
   const toggleStock = async (product) => {
+    setPanelMsg('');
+    setPanelMsgType('success');
     try {
       const response = await fetch(`${API_BASE}/products/${product._id}`, {
         method: 'PUT',
@@ -176,13 +197,21 @@ const AdminPanel = () => {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
-        alert(product.countInStock > 0 ? 'Marked as Out of Stock' : 'Marked as In Stock');
+        setPanelMsg(product.countInStock > 0 ? 'Marked Out of Stock!' : 'Marked In Stock!');
+        setPanelMsgType('success');
+        setTimeout(() => setPanelMsg(''), 3000);
         fetchProducts();
+      } else {
+        setPanelMsg('Failed to update stock');
+        setPanelMsgType('error');
+        setTimeout(() => setPanelMsg(''), 3000);
       }
     } catch (error) {
-      console.error('Error updating stock:', error);
+      setPanelMsg('Error updating stock');
+      setPanelMsgType('error');
+      setTimeout(() => setPanelMsg(''), 3000);
     }
   };
 
@@ -212,7 +241,21 @@ const AdminPanel = () => {
         <section className="admin-panel">
           <div className="container">
             <h1 style={{ marginBottom: '32px', fontSize: '42px' }}>Admin Dashboard</h1>
-
+            {panelMsg && (
+              <div
+                style={{
+                  background: panelMsgType === 'success' ? 'var(--success)' : 'var(--error)',
+                  color: 'white',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  marginBottom: '24px',
+                  textAlign: 'center',
+                  fontWeight: 700
+                }}
+              >
+                {panelMsg}
+              </div>
+            )}
             <div className="admin-tabs">
               <button
                 className={`admin-tab ${activeTab === 'products' ? 'active' : ''}`}
@@ -263,7 +306,6 @@ const AdminPanel = () => {
                   <div className="admin-form-wrapper">
                     <form onSubmit={handleProductSubmit} className="admin-form">
                       <h3>{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
-                      
                       <div className="form-group">
                         <label>Product Name</label>
                         <input
@@ -273,7 +315,6 @@ const AdminPanel = () => {
                           required
                         />
                       </div>
-
                       <div className="form-row">
                         <div className="form-group">
                           <label>Price ($)</label>
@@ -295,7 +336,6 @@ const AdminPanel = () => {
                           />
                         </div>
                       </div>
-
                       <div className="form-row">
                         <div className="form-group">
                           <label>Category</label>
@@ -324,7 +364,6 @@ const AdminPanel = () => {
                           />
                         </div>
                       </div>
-
                       <div className="form-group">
                         <label>Image URL</label>
                         <input
@@ -334,7 +373,6 @@ const AdminPanel = () => {
                           required
                         />
                       </div>
-
                       <div className="form-group">
                         <label>Description</label>
                         <textarea
@@ -343,7 +381,6 @@ const AdminPanel = () => {
                           onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                         />
                       </div>
-
                       <div style={{ display: 'flex', gap: '12px' }}>
                         <button type="submit" className="btn-primary">
                           {editingProduct ? 'Update Product' : 'Create Product'}
@@ -386,7 +423,7 @@ const AdminPanel = () => {
                           <td>{product.category}</td>
                           <td>${product.price}</td>
                           <td>
-                            <span style={{ 
+                            <span style={{
                               color: product.countInStock > 0 ? 'var(--success)' : 'var(--error)',
                               fontWeight: '600'
                             }}>
@@ -464,7 +501,7 @@ const AdminPanel = () => {
                           <td>{order.user?.name || 'N/A'}</td>
                           <td>${order.totalPrice.toFixed(2)}</td>
                           <td>
-                            <span style={{ 
+                            <span style={{
                               color: order.isDelivered ? 'var(--success)' : 'var(--accent)',
                               fontWeight: '600'
                             }}>
@@ -499,9 +536,7 @@ const AdminPanel = () => {
                         <tr key={u._id}>
                           <td>{u.name}</td>
                           <td>{u.email}</td>
-                          <td style={{ textTransform: 'capitalize', fontWeight: '600' }}>
-                            {u.role}
-                          </td>
+                          <td style={{ textTransform: 'capitalize', fontWeight: '600' }}>{u.role}</td>
                           <td>{new Date(u.createdAt).toLocaleDateString()}</td>
                         </tr>
                       ))}

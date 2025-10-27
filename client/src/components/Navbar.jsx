@@ -32,18 +32,13 @@ const Navbar = () => {
       <nav className="navbar">
         <div className="container navbar-container">
           <Link to="/" className="nav-brand">ShopHub</Link>
-          
           <div className="nav-center">
             <ul>
               <li><Link to="/">Home</Link></li>
               <li><Link to="/products">Products</Link></li>
               <li><Link to="/about">About</Link></li>
-              {user && user.role === 'admin' && (
-                <li><Link to="/admin" style={{ color: 'var(--accent)' }}>⚡ Admin</Link></li>
-              )}
             </ul>
           </div>
-          
           <div className="nav-right">
             <div className="search-container">
               <input 
@@ -58,7 +53,6 @@ const Navbar = () => {
                 </svg>
               </button>
             </div>
-            
             <Link to="/cart" className="nav-icon">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -67,7 +61,6 @@ const Navbar = () => {
               </svg>
               {getCartCount() > 0 && <span className="cart-badge">{getCartCount()}</span>}
             </Link>
-            
             {user ? (
               <div className="user-menu-wrapper">
                 <button 
@@ -76,26 +69,33 @@ const Navbar = () => {
                 >
                   <span className="user-avatar">{user.name.charAt(0)}</span>
                 </button>
-                
                 {showUserMenu && (
                   <div className="user-menu-dropdown">
                     <div className="user-menu-header">
                       <p className="user-name">{user.name}</p>
                       <p className="user-email">{user.email}</p>
-                      {user.role === 'admin' && (
-                        <p style={{ color: 'var(--accent)', fontSize: '12px', fontWeight: '700', marginTop: '4px' }}>
-                          ⚡ ADMIN
-                        </p>
-                      )}
                     </div>
                     <div className="user-menu-links">
-                      <Link to="/profile" onClick={() => setShowUserMenu(false)}>Profile</Link>
-                      <Link to="/orders" onClick={() => setShowUserMenu(false)}>Orders</Link>
                       {user.role === 'admin' && (
-                        <Link to="/admin" onClick={() => setShowUserMenu(false)} style={{ color: 'var(--accent)' }}>
+                        <Link
+                          to="/admin"
+                          onClick={() => setShowUserMenu(false)}
+                          style={{
+                            background: 'var(--bg-elevated)',
+                            border: '2px solid var(--primary)',
+                            color: 'var(--primary)',
+                            fontWeight: '700',
+                            borderRadius: '8px',
+                            marginBottom: '8px',
+                            textAlign: 'center'
+                          }}
+                          className="admin-panel-link"
+                        >
                           ⚡ Admin Panel
                         </Link>
                       )}
+                      <Link to="/profile" onClick={() => setShowUserMenu(false)}>Profile</Link>
+                      <Link to="/orders" onClick={() => setShowUserMenu(false)}>Orders</Link>
                       <button onClick={handleLogout}>Logout</button>
                     </div>
                   </div>
@@ -110,12 +110,11 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
-
       {showAuthModal && (
         <AuthModal 
           mode={authMode} 
           onClose={() => setShowAuthModal(false)} 
-          onSwitch={(mode) => setAuthMode(mode)}
+          onSwitch={mode => setAuthMode(mode)}
         />
       )}
     </>
