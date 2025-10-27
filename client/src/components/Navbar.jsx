@@ -38,6 +38,9 @@ const Navbar = () => {
               <li><Link to="/">Home</Link></li>
               <li><Link to="/products">Products</Link></li>
               <li><Link to="/about">About</Link></li>
+              {user && user.role === 'admin' && (
+                <li><Link to="/admin" style={{ color: 'var(--accent)' }}>⚡ Admin</Link></li>
+              )}
             </ul>
           </div>
           
@@ -79,10 +82,20 @@ const Navbar = () => {
                     <div className="user-menu-header">
                       <p className="user-name">{user.name}</p>
                       <p className="user-email">{user.email}</p>
+                      {user.role === 'admin' && (
+                        <p style={{ color: 'var(--accent)', fontSize: '12px', fontWeight: '700', marginTop: '4px' }}>
+                          ⚡ ADMIN
+                        </p>
+                      )}
                     </div>
                     <div className="user-menu-links">
                       <Link to="/profile" onClick={() => setShowUserMenu(false)}>Profile</Link>
                       <Link to="/orders" onClick={() => setShowUserMenu(false)}>Orders</Link>
+                      {user.role === 'admin' && (
+                        <Link to="/admin" onClick={() => setShowUserMenu(false)} style={{ color: 'var(--accent)' }}>
+                          ⚡ Admin Panel
+                        </Link>
+                      )}
                       <button onClick={handleLogout}>Logout</button>
                     </div>
                   </div>

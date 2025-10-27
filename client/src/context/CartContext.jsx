@@ -4,8 +4,8 @@ export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  const [toast, setToast] = useState(null);
 
-  // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
@@ -13,27 +13,33 @@ export const CartProvider = ({ children }) => {
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
+
   const addToCart = (product) => {
     setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      const existing = prev.find(item => (item._id || item.id) === (product._id || product.id));
       if (existing) {
+        showToast(`Updated ${product.name} quantity in cart`, 'success');
         return prev.map(item =>
-          item.id === product.id
+          (item._id || item.id) === (product._id || product.id)
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
+      showToast(`${product.name} added to cart!`, 'success');
       return [...prev, { ...product, quantity: 1 }];
     });
   };
 
   const removeFromCart = (productId) => {
-    setCart(prev => prev.filter(item => item.id !== productId));
+    setCart(prev => prev.filter(item => (item._id || item.id) !== productId));
+    showToast('Item removed from cart', 'success');
   };
 
   const updateQuantity = (productId, quantity) => {
@@ -43,7 +49,7 @@ export const CartProvider = ({ children }) => {
     }
     setCart(prev =>
       prev.map(item =>
-        item.id === productId ? { ...item, quantity } : item
+        (item._id || item.id) === productId ? { ...item, quantity } : item
       )
     );
   };
@@ -61,6 +67,14 @@ export const CartProvider = ({ children }) => {
     return cart.reduce((count, item) => count + item.quantity, 0);
   };
 
+  const isInCart = (productId) => {
+    return cart.some(item => (item._id || item.id) === productId);
+  };
+
+  const getCartItem = (productId) => {
+    return cart.find(item => (item._id || item.id) === productId);
+  };
+
   return (
     <CartContext.Provider value={{
       cart,
@@ -69,7 +83,11 @@ export const CartProvider = ({ children }) => {
       updateQuantity,
       clearCart,
       getTotalPrice,
-      getCartCount
+      getCartCount,
+      isInCart,
+      getCartItem,
+      toast,
+      setToast
     }}>
       {children}
     </CartContext.Provider>

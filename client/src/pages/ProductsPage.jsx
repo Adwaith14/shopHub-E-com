@@ -2,16 +2,22 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import Toast from '../components/Toast';
 import { CartContext } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
 const ProductsPage = () => {
-  const { addToCart } = useContext(CartContext);
+  const { addToCart, updateQuantity, isInCart, getCartItem, toast, setToast } = useContext(CartContext);
   const { API_BASE } = useAuth();
   
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [timeLeft, setTimeLeft] = useState(60);
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 12;
   
   const [filters, setFilters] = useState({
     category: 'all',
@@ -21,10 +27,16 @@ const ProductsPage = () => {
     search: ''
   });
 
-  // Fetch products from backend
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    if (loading && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, timeLeft]);
 
   const fetchProducts = async () => {
     try {
@@ -42,7 +54,6 @@ const ProductsPage = () => {
     }
   };
 
-  // Apply filters
   useEffect(() => {
     let result = [...products];
 
@@ -96,6 +107,7 @@ const ProductsPage = () => {
     }
 
     setFilteredProducts(result);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [filters, products]);
 
   const handleFilterChange = (filterType, value) => {
@@ -112,12 +124,29 @@ const ProductsPage = () => {
     });
   };
 
-  // Get unique categories from products
   const categories = ['all', ...new Set(products.map(p => p.category))];
+
+  // Pagination logic
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <>
       <Navbar />
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
+      )}
       <main>
         <section className="products-page">
           <div className="container">
@@ -212,7 +241,7 @@ const ProductsPage = () => {
               <div className="products-main">
                 <div className="products-toolbar">
                   <span className="products-count">
-                    {filteredProducts.length} Products
+                    {filteredProducts.length} Products {totalPages > 1 && `(Page ${currentPage} of ${totalPages})`}
                   </span>
                   <select
                     value={filters.sortBy}
@@ -230,7 +259,13 @@ const ProductsPage = () => {
                 {loading ? (
                   <div className="loading">
                     <div className="loading-spinner"></div>
-                    <p>Loading products...</p>
+                    <p>Loading products from database...</p>
+                    <p style={{ fontSize: '24px', fontWeight: '700', marginTop: '16px' }}>
+                      {timeLeft}s
+                    </p>
+                    <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+                      Please wait, fetching products...
+                    </p>
                   </div>
                 ) : filteredProducts.length === 0 ? (
                   <div className="empty-state">
@@ -241,35 +276,96 @@ const ProductsPage = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="product-grid">
-                    {filteredProducts.map((product) => (
-                      <div key={product._id} className="product-card">
-                        {product.countInStock === 0 && (
-                          <span className="product-badge sale">Out of Stock</span>
-                        )}
-                        <div className="product-image-wrapper">
-                          <img src={product.image} alt={product.name} />
-                        </div>
-                        <div className="product-info">
-                          <span className="product-category">{product.category}</span>
-                          <h3 className="product-title">{product.name}</h3>
-                          <div className="product-rating">
-                            ⭐ {product.rating.toFixed(1)}
+                  <>
+                    <div className="product-grid">
+                      {currentProducts.map((product) => {
+                        const inCart = isInCart(product._id);
+                        const cartItem = getCartItem(product._id);
+
+                        return (
+                          <div key={product._id} className="product-card">
+                            {product.countInStock === 0 && (
+                              <span className="product-badge sale">Out of Stock</span>
+                            )}
+                            <div className="product-image-wrapper">
+                              <img src={product.image} alt={product.name} />
+                            </div>
+                            <div className="product-info">
+                              <span className="product-category">{product.category}</span>
+                              <h3 className="product-title">{product.name}</h3>
+                              <div className="product-rating">
+                                ⭐ {product.rating.toFixed(1)}
+                              </div>
+                              <div className="product-pricing">
+                                <span className="product-price">${product.price.toFixed(2)}</span>
+                              </div>
+                              
+                              {inCart ? (
+                                <div className="quantity-controls">
+                                  <button
+                                    className="qty-btn"
+                                    onClick={() => updateQuantity(product._id, cartItem.quantity - 1)}
+                                  >
+                                    -
+                                  </button>
+                                  <span style={{ fontSize: '16px', fontWeight: '600' }}>
+                                    {cartItem.quantity}
+                                  </span>
+                                  <button
+                                    className="qty-btn"
+                                    onClick={() => updateQuantity(product._id, cartItem.quantity + 1)}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  className="btn-add-to-cart"
+                                  onClick={() => addToCart(product)}
+                                  disabled={product.countInStock === 0}
+                                >
+                                  {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                                </button>
+                              )}
+                            </div>
                           </div>
-                          <div className="product-pricing">
-                            <span className="product-price">${product.price.toFixed(2)}</span>
-                          </div>
-                          <button
-                            className="btn-add-to-cart"
-                            onClick={() => addToCart(product)}
-                            disabled={product.countInStock === 0}
-                          >
-                            {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="pagination">
+                        <button
+                          onClick={() => paginate(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="pagination-btn"
+                        >
+                          ← Previous
+                        </button>
+                        
+                        <div className="pagination-numbers">
+                          {[...Array(totalPages)].map((_, index) => (
+                            <button
+                              key={index + 1}
+                              onClick={() => paginate(index + 1)}
+                              className={`pagination-number ${currentPage === index + 1 ? 'active' : ''}`}
+                            >
+                              {index + 1}
+                            </button>
+                          ))}
                         </div>
+
+                        <button
+                          onClick={() => paginate(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="pagination-btn"
+                        >
+                          Next →
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

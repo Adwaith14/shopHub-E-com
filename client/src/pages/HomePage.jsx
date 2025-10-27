@@ -4,15 +4,16 @@ import Hero from '../components/Hero';
 import Features from '../components/Features';
 import Categories from '../components/Categories';
 import Footer from '../components/Footer';
+import Toast from '../components/Toast';
 import { CartContext } from '../context/CartContext';
 
 const HomePage = () => {
-  const { addToCart } = useContext(CartContext);
+  const { addToCart, updateQuantity, isInCart, getCartItem, toast, setToast } = useContext(CartContext);
 
-  // Featured products for homepage
   const featuredProducts = [
     {
       id: 1,
+      _id: 1,
       name: 'Premium Leather Jacket',
       price: 249,
       originalPrice: 399,
@@ -22,6 +23,7 @@ const HomePage = () => {
     },
     {
       id: 2,
+      _id: 2,
       name: 'Classic White Sneakers',
       price: 129,
       category: 'Footwear',
@@ -30,6 +32,7 @@ const HomePage = () => {
     },
     {
       id: 3,
+      _id: 3,
       name: 'Designer Sunglasses',
       price: 189,
       category: 'Accessories',
@@ -38,6 +41,7 @@ const HomePage = () => {
     },
     {
       id: 4,
+      _id: 4,
       name: 'Premium Sneakers',
       price: 149,
       category: 'Footwear',
@@ -48,12 +52,18 @@ const HomePage = () => {
   return (
     <>
       <Navbar />
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
+      )}
       <main>
         <Hero />
         <Features />
         <Categories />
         
-        {/* Featured Products Section */}
         <section className="products">
           <div className="container">
             <div className="section-header">
@@ -64,37 +74,63 @@ const HomePage = () => {
               <a href="/products" className="link-view-all">View All Products →</a>
             </div>
             <div className="product-grid">
-              {featuredProducts.map((product) => (
-                <div key={product.id} className="product-card">
-                  {product.badge && (
-                    <span className={`product-badge ${product.badge.toLowerCase()}`}>
-                      {product.badge}
-                    </span>
-                  )}
-                  <div className="product-image-wrapper">
-                    <img src={product.image} alt={product.name} />
-                    <div className="product-quick-view">
-                      <button className="btn-quick-view">Quick View</button>
+              {featuredProducts.map((product) => {
+                const inCart = isInCart(product._id);
+                const cartItem = getCartItem(product._id);
+
+                return (
+                  <div key={product.id} className="product-card">
+                    {product.badge && (
+                      <span className={`product-badge ${product.badge.toLowerCase()}`}>
+                        {product.badge}
+                      </span>
+                    )}
+                    <div className="product-image-wrapper">
+                      <img src={product.image} alt={product.name} />
+                      <div className="product-quick-view">
+                        <button className="btn-quick-view">Quick View</button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="product-info">
-                    <span className="product-category">{product.category}</span>
-                    <h3 className="product-title">{product.name}</h3>
-                    <div className="product-pricing">
-                      <span className="product-price">${product.price}</span>
-                      {product.originalPrice && (
-                        <span className="product-original-price">${product.originalPrice}</span>
+                    <div className="product-info">
+                      <span className="product-category">{product.category}</span>
+                      <h3 className="product-title">{product.name}</h3>
+                      <div className="product-pricing">
+                        <span className="product-price">${product.price}</span>
+                        {product.originalPrice && (
+                          <span className="product-original-price">${product.originalPrice}</span>
+                        )}
+                      </div>
+                      
+                      {inCart ? (
+                        <div className="quantity-controls">
+                          <button
+                            className="qty-btn"
+                            onClick={() => updateQuantity(product._id, cartItem.quantity - 1)}
+                          >
+                            -
+                          </button>
+                          <span style={{ fontSize: '16px', fontWeight: '600' }}>
+                            {cartItem.quantity}
+                          </span>
+                          <button
+                            className="qty-btn"
+                            onClick={() => updateQuantity(product._id, cartItem.quantity + 1)}
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        <button 
+                          className="btn-add-to-cart"
+                          onClick={() => addToCart(product)}
+                        >
+                          Add to Cart
+                        </button>
                       )}
                     </div>
-                    <button 
-                      className="btn-add-to-cart"
-                      onClick={() => addToCart(product)}
-                    >
-                      Add to Cart
-                    </button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
