@@ -28,8 +28,9 @@ const CheckoutPage = () => {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [orderDetails, setOrderDetails] = useState(null);
 
-  // Fetch saved addresses on component mount
   useEffect(() => {
     if (user && token) {
       fetchSavedAddresses();
@@ -109,6 +110,9 @@ const CheckoutPage = () => {
         totalPrice: getTotalPrice() + 10 + (getTotalPrice() * 0.1)
       };
 
+      // Simulate loading time
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       const response = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
         headers: {
@@ -121,14 +125,22 @@ const CheckoutPage = () => {
       const data = await response.json();
 
       if (data.success) {
-        // Save address if it's new
         if (useNewAddress) {
           await saveAddress(formData);
         }
         
-        alert('✅ Order placed successfully!');
+        setOrderDetails({
+          orderId: data.order._id,
+          total: data.order.totalPrice,
+          date: new Date().toLocaleDateString()
+        });
+        setShowOrderModal(true);
+        
         clearCart();
-        navigate('/orders');
+        
+        setTimeout(() => {
+          navigate('/orders');
+        }, 3000);
       } else {
         setError(data.message || 'Failed to place order');
       }
@@ -165,7 +177,7 @@ const CheckoutPage = () => {
 
   const total = getTotalPrice() + 10 + (getTotalPrice() * 0.1);
 
-  if (cart.length === 0) {
+  if (cart.length === 0 && !showOrderModal) {
     return (
       <>
         <Navbar />
@@ -187,282 +199,322 @@ const CheckoutPage = () => {
     <>
       <Navbar />
       <main>
-        <section className="checkout-page">
-          <div className="container">
-            <h1 style={{ marginBottom: '32px', fontSize: '42px' }}>Checkout</h1>
-            
-            {error && (
-              <div style={{ 
-                padding: '16px', 
-                background: 'var(--error)', 
-                color: 'white', 
-                borderRadius: '8px',
-                marginBottom: '24px'
-              }}>
-                {error}
+        {showOrderModal && (
+          <div className="modal-overlay">
+            <div className="modal-content" style={{ maxWidth: '500px' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  background: 'var(--success)',
+                  borderRadius: '50%',
+                  margin: '0 auto 24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <h2 style={{ marginBottom: '12px', color: 'var(--success)' }}>Order Placed Successfully!</h2>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
+                  Thank you for your order. Your order details have been sent to your email.
+                </p>
+                <div style={{ background: 'var(--bg-elevated)', padding: '20px', borderRadius: '8px', marginBottom: '24px' }}>
+                  <p style={{ margin: '0 0 8px 0', color: 'var(--text-muted)', fontSize: '13px' }}>Order ID</p>
+                  <p style={{ margin: '0', fontSize: '18px', fontWeight: '700' }}>
+                    #{orderDetails?.orderId?.slice(-8)}
+                  </p>
+                  <p style={{ margin: '12px 0 0 0', color: 'var(--text-muted)', fontSize: '13px' }}>Total Amount</p>
+                  <p style={{ margin: '0', fontSize: '24px', fontWeight: '800', color: 'var(--primary)' }}>
+                    ${orderDetails?.total?.toFixed(2)}
+                  </p>
+                </div>
+                <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+                  Redirecting to orders page in 3 seconds...
+                </p>
               </div>
-            )}
-            
-            <div className="checkout-container">
-              <form onSubmit={handleSubmit}>
-                <div className="checkout-section">
-                  <h2>Shipping Information</h2>
+            </div>
+          </div>
+        )}
 
-                  {/* Saved Addresses Section */}
-                  {savedAddresses.length > 0 && (
-                    <div style={{ marginBottom: '24px' }}>
-                      <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-                        <button
-                          type="button"
-                          onClick={() => setUseNewAddress(false)}
-                          style={{
-                            padding: '10px 20px',
-                            background: !useNewAddress ? 'var(--primary)' : 'var(--bg-elevated)',
-                            color: !useNewAddress ? 'white' : 'var(--text-primary)',
-                            borderRadius: '8px',
-                            fontWeight: '600',
-                            border: '1px solid var(--border)'
-                          }}
-                        >
-                          Use Saved Address
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setUseNewAddress(true);
-                            setSelectedAddress(null);
-                            setFormData({
-                              ...formData,
-                              fullName: user?.name || '',
-                              phone: '',
-                              addressLine: '',
-                              city: '',
-                              state: '',
-                              pincode: '',
-                              country: ''
-                            });
-                          }}
-                          style={{
-                            padding: '10px 20px',
-                            background: useNewAddress ? 'var(--primary)' : 'var(--bg-elevated)',
-                            color: useNewAddress ? 'white' : 'var(--text-primary)',
-                            borderRadius: '8px',
-                            fontWeight: '600',
-                            border: '1px solid var(--border)'
-                          }}
-                        >
-                          Add New Address
-                        </button>
-                      </div>
-
-                      {!useNewAddress && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                          {savedAddresses.map((addr, index) => (
-                            <div
-                              key={index}
-                              onClick={() => handleAddressSelect(addr)}
-                              style={{
-                                padding: '16px',
-                                background: selectedAddress === addr ? 'var(--primary)' : 'var(--bg-elevated)',
-                                color: selectedAddress === addr ? 'white' : 'var(--text-primary)',
-                                border: `2px solid ${selectedAddress === addr ? 'var(--primary)' : 'var(--border)'}`,
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                transition: 'var(--transition)'
-                              }}
-                            >
-                              <strong>{addr.fullName}</strong>
-                              <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>
-                                {addr.addressLine}, {addr.city}, {addr.state} - {addr.pincode}, {addr.country}
-                              </p>
-                              <p style={{ margin: '4px 0 0 0', fontSize: '14px' }}>
-                                Phone: {addr.phone}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* New Address Form */}
-                  {(useNewAddress || savedAddresses.length === 0) && (
-                    <>
-                      <div className="form-group">
-                        <label>Full Name</label>
-                        <input
-                          type="text"
-                          name="fullName"
-                          value={formData.fullName}
-                          onChange={handleChange}
-                          required
-                          placeholder="Enter your full name"
-                        />
-                      </div>
-
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label>Email</label>
-                          <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            placeholder="your@email.com"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>Phone</label>
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            required
-                            placeholder="(555) 123-4567"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="form-group">
-                        <label>Address</label>
-                        <input
-                          type="text"
-                          name="addressLine"
-                          value={formData.addressLine}
-                          onChange={handleChange}
-                          required
-                          placeholder="Street address, P.O. box"
-                        />
-                      </div>
-
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label>City</label>
-                          <input
-                            type="text"
-                            name="city"
-                            value={formData.city}
-                            onChange={handleChange}
-                            required
-                            placeholder="City"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>State</label>
-                          <input
-                            type="text"
-                            name="state"
-                            value={formData.state}
-                            onChange={handleChange}
-                            required
-                            placeholder="State / Province"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label>PIN Code</label>
-                          <input
-                            type="text"
-                            name="pincode"
-                            value={formData.pincode}
-                            onChange={handleChange}
-                            required
-                            placeholder="PIN / ZIP code"
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>Country</label>
-                          <input
-                            type="text"
-                            name="country"
-                            value={formData.country}
-                            onChange={handleChange}
-                            required
-                            placeholder="Country"
-                          />
-                        </div>
-                      </div>
-                    </>
-                  )}
+        {!showOrderModal && (
+          <section className="checkout-page">
+            <div className="container">
+              <h1 style={{ marginBottom: '32px', fontSize: '42px' }}>Checkout</h1>
+              
+              {error && (
+                <div style={{ 
+                  padding: '16px', 
+                  background: 'var(--error)', 
+                  color: 'white', 
+                  borderRadius: '8px',
+                  marginBottom: '24px'
+                }}>
+                  {error}
                 </div>
+              )}
+              
+              <div className="checkout-container">
+                <form onSubmit={handleSubmit}>
+                  <div className="checkout-section">
+                    <h2>Shipping Information</h2>
 
-                <div className="checkout-section">
-                  <h2>Payment Method</h2>
-                  <div className="payment-methods">
-                    <label className="payment-option" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="card"
-                        checked={formData.paymentMethod === 'card'}
-                        onChange={handleChange}
-                      />
-                      <span>Credit / Debit Card</span>
-                    </label>
-                    <label className="payment-option" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="upi"
-                        checked={formData.paymentMethod === 'upi'}
-                        onChange={handleChange}
-                      />
-                      <span>UPI</span>
-                    </label>
-                    <label className="payment-option" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="cod"
-                        checked={formData.paymentMethod === 'cod'}
-                        onChange={handleChange}
-                      />
-                      <span>Cash on Delivery</span>
-                    </label>
+                    {savedAddresses.length > 0 && (
+                      <div style={{ marginBottom: '24px' }}>
+                        <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setUseNewAddress(false)}
+                            style={{
+                              padding: '10px 20px',
+                              background: !useNewAddress ? 'var(--primary)' : 'var(--bg-elevated)',
+                              color: !useNewAddress ? 'white' : 'var(--text-primary)',
+                              borderRadius: '8px',
+                              fontWeight: '600',
+                              border: '1px solid var(--border)'
+                            }}
+                          >
+                            Use Saved Address
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUseNewAddress(true);
+                              setSelectedAddress(null);
+                              setFormData({
+                                ...formData,
+                                fullName: user?.name || '',
+                                phone: '',
+                                addressLine: '',
+                                city: '',
+                                state: '',
+                                pincode: '',
+                                country: ''
+                              });
+                            }}
+                            style={{
+                              padding: '10px 20px',
+                              background: useNewAddress ? 'var(--primary)' : 'var(--bg-elevated)',
+                              color: useNewAddress ? 'white' : 'var(--text-primary)',
+                              borderRadius: '8px',
+                              fontWeight: '600',
+                              border: '1px solid var(--border)'
+                            }}
+                          >
+                            Add New Address
+                          </button>
+                        </div>
+
+                        {!useNewAddress && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {savedAddresses.map((addr, index) => (
+                              <div
+                                key={index}
+                                onClick={() => handleAddressSelect(addr)}
+                                style={{
+                                  padding: '16px',
+                                  background: selectedAddress === addr ? 'var(--primary)' : 'var(--bg-elevated)',
+                                  color: selectedAddress === addr ? 'white' : 'var(--text-primary)',
+                                  border: `2px solid ${selectedAddress === addr ? 'var(--primary)' : 'var(--border)'}`,
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  transition: 'var(--transition)'
+                                }}
+                              >
+                                <strong>{addr.fullName}</strong>
+                                <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>
+                                  {addr.addressLine}, {addr.city}, {addr.state} - {addr.pincode}, {addr.country}
+                                </p>
+                                <p style={{ margin: '4px 0 0 0', fontSize: '14px' }}>
+                                  Phone: {addr.phone}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {(useNewAddress || savedAddresses.length === 0) && (
+                      <>
+                        <div className="form-group">
+                          <label>Full Name</label>
+                          <input
+                            type="text"
+                            name="fullName"
+                            value={formData.fullName}
+                            onChange={handleChange}
+                            required
+                            placeholder="Enter your full name"
+                          />
+                        </div>
+
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>Email</label>
+                            <input
+                              type="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleChange}
+                              required
+                              placeholder="your@email.com"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Phone</label>
+                            <input
+                              type="tel"
+                              name="phone"
+                              value={formData.phone}
+                              onChange={handleChange}
+                              required
+                              placeholder="(555) 123-4567"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="form-group">
+                          <label>Address</label>
+                          <input
+                            type="text"
+                            name="addressLine"
+                            value={formData.addressLine}
+                            onChange={handleChange}
+                            required
+                            placeholder="Street address, P.O. box"
+                          />
+                        </div>
+
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>City</label>
+                            <input
+                              type="text"
+                              name="city"
+                              value={formData.city}
+                              onChange={handleChange}
+                              required
+                              placeholder="City"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>State</label>
+                            <input
+                              type="text"
+                              name="state"
+                              value={formData.state}
+                              onChange={handleChange}
+                              required
+                              placeholder="State / Province"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label>PIN Code</label>
+                            <input
+                              type="text"
+                              name="pincode"
+                              value={formData.pincode}
+                              onChange={handleChange}
+                              required
+                              placeholder="PIN / ZIP code"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Country</label>
+                            <input
+                              type="text"
+                              name="country"
+                              value={formData.country}
+                              onChange={handleChange}
+                              required
+                              placeholder="Country"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
-                </div>
 
-                <button type="submit" className="btn-place-order" disabled={loading || (!useNewAddress && !selectedAddress)}>
-                  {loading ? 'Processing...' : `Place Order - $${total.toFixed(2)}`}
-                </button>
-              </form>
-
-              <div className="cart-summary">
-                <h2 style={{ fontSize: '24px', marginBottom: '24px' }}>Order Summary</h2>
-                {cart.map((item) => (
-                  <div key={item._id || item.id} style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{item.name} x {item.quantity}</span>
-                      <span>${(item.price * item.quantity).toFixed(2)}</span>
+                  <div className="checkout-section">
+                    <h2>Payment Method</h2>
+                    <div className="payment-methods">
+                      <label className="payment-option" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="card"
+                          checked={formData.paymentMethod === 'card'}
+                          onChange={handleChange}
+                        />
+                        <span>Credit / Debit Card</span>
+                      </label>
+                      <label className="payment-option" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="upi"
+                          checked={formData.paymentMethod === 'upi'}
+                          onChange={handleChange}
+                        />
+                        <span>UPI</span>
+                      </label>
+                      <label className="payment-option" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="cod"
+                          checked={formData.paymentMethod === 'cod'}
+                          onChange={handleChange}
+                        />
+                        <span>Cash on Delivery</span>
+                      </label>
                     </div>
                   </div>
-                ))}
-                <div className="summary-row">
-                  <span>Subtotal:</span>
-                  <span>${getTotalPrice().toFixed(2)}</span>
-                </div>
-                <div className="summary-row">
-                  <span>Shipping:</span>
-                  <span>$10.00</span>
-                </div>
-                <div className="summary-row">
-                  <span>Tax:</span>
-                  <span>${(getTotalPrice() * 0.1).toFixed(2)}</span>
-                </div>
-                <div className="summary-total">
+
+                  <button type="submit" className="btn-place-order" disabled={loading || (!useNewAddress && !selectedAddress)}>
+                    {loading ? 'Processing...' : `Place Order - $${total.toFixed(2)}`}
+                  </button>
+                </form>
+
+                <div className="cart-summary">
+                  <h2 style={{ fontSize: '24px', marginBottom: '24px' }}>Order Summary</h2>
+                  {cart.map((item) => (
+                    <div key={item._id || item.id} style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>{item.name} x {item.quantity}</span>
+                        <span>${(item.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ))}
                   <div className="summary-row">
-                    <span>Total:</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>Subtotal:</span>
+                    <span>${getTotalPrice().toFixed(2)}</span>
+                  </div>
+                  <div className="summary-row">
+                    <span>Shipping:</span>
+                    <span>$10.00</span>
+                  </div>
+                  <div className="summary-row">
+                    <span>Tax:</span>
+                    <span>${(getTotalPrice() * 0.1).toFixed(2)}</span>
+                  </div>
+                  <div className="summary-total">
+                    <div className="summary-row">
+                      <span>Total:</span>
+                      <span>${total.toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
       <Footer />
     </>

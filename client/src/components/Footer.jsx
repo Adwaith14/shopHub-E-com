@@ -1,70 +1,68 @@
 import React from 'react';
 
 const Footer = () => {
-  const footerLinks = {
-    shop: ['All Products', 'New Arrivals', 'Best Sellers', 'Collections'],
-    company: ['About Us', 'Contact', 'Careers', 'Press'],
-    support: ['Help Center', 'Shipping Info', 'Returns', 'FAQs']
-  };
-
   return (
     <footer className="footer">
-      <div className="container footer-container">
-        <div className="footer-column footer-brand-col">
-          <a href="#" className="footer-brand">ShopHub</a>
-          <p className="footer-tagline">
-            Premium curation for modern living. Quality products, exceptional service.
-          </p>
-          <div className="social-links">
-            <a href="#" aria-label="Twitter" className="social-link">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/>
-              </svg>
-            </a>
-            <a href="#" aria-label="Instagram" className="social-link">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/>
-                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-              </svg>
-            </a>
-            <a href="#" aria-label="LinkedIn" className="social-link">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/>
-                <circle cx="4" cy="4" r="2"/>
-              </svg>
-            </a>
+      <div className="container">
+        <div className="footer-container">
+          <div>
+            <span className="footer-brand">ShopHub</span>
+            <p className="footer-tagline">
+              Premium fashion marketplace with curated collections for everyone.
+              Shop quality, affordable style delivered to your door.
+            </p>
+            <div className="footer-socials">
+              <a href="#" className="social-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </a>
+              <a href="#" className="social-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.953 4.57a10 10 0 002.856-3.515 10 10 0 01-2.836.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                </svg>
+              </a>
+              <a href="#" className="social-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M6.601 11.602a3.464 3.464 0 1 1 6.928.464 3.464 3.464 0 0 1-6.928-.464M17.321 6.529a.808.808 0 1 1 1.617 0 .808.808 0 0 1-1.617 0" fill="white"/>
+                </svg>
+              </a>
+              <a href="#" className="social-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.475-2.236-1.986-2.236-1.081 0-1.722.731-2.004 1.438-.103.25-.129.599-.129.948v5.419h-3.554s.05-8.736 0-9.646h3.554v1.364c.429-.659 1.196-1.597 2.905-1.597 2.12 0 3.708 1.384 3.708 4.36v5.519zM5.337 8.855c-1.144 0-1.915-.758-1.915-1.71 0-.956.768-1.71 1.959-1.71 1.19 0 1.916.754 1.935 1.71 0 .952-.745 1.71-1.979 1.71zm1.946 11.597H3.392V9.806h3.891v10.646zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h4>Company</h4>
+            <a href="#">About</a>
+            <a href="#">Blog</a>
+            <a href="#">Careers</a>
+            <a href="#">Press</a>
+          </div>
+
+          <div>
+            <h4>Support</h4>
+            <a href="#">Help Center</a>
+            <a href="#">Contact Us</a>
+            <a href="#">Status</a>
+            <a href="#">Feedback</a>
+          </div>
+
+          <div>
+            <h4>Legal</h4>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Cookie Policy</a>
+            <a href="#">License</a>
           </div>
         </div>
-        
-        <div className="footer-column">
-          <h4>Shop</h4>
-          {footerLinks.shop.map((link, index) => (
-            <a href="#" key={index}>{link}</a>
-          ))}
-        </div>
-        
-        <div className="footer-column">
-          <h4>Company</h4>
-          {footerLinks.company.map((link, index) => (
-            <a href="#" key={index}>{link}</a>
-          ))}
-        </div>
-        
-        <div className="footer-column">
-          <h4>Support</h4>
-          {footerLinks.support.map((link, index) => (
-            <a href="#" key={index}>{link}</a>
-          ))}
-        </div>
-      </div>
-      
-      <div className="footer-bottom">
-        <p>© 2025 ShopHub. All rights reserved.</p>
-        <div className="footer-legal">
-          <a href="#">Privacy Policy</a>
-          <span className="dot-separator">•</span>
-          <a href="#">Terms of Service</a>
+
+        <div className="footer-bottom">
+          <p>&copy; 2025 ShopHub. All rights reserved.</p>
+          <div>Made with ❤️ for fashion lovers</div>
         </div>
       </div>
     </footer>
