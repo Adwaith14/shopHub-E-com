@@ -15,7 +15,7 @@ const app = express();
 // CORS Configuration - for dev and for prod
 app.use(cors({
    origin: [
-      'https://shophub-e-com.onrender.com' // your deployed frontend
+      'shophub-ecomm.netlify.app' // your deployed frontend
    ],
    credentials: true,
    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -62,5 +62,4 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
    console.log(`🚀 Server running on port ${PORT}`);
-   console.log(`📍 API URL: http://localhost:${PORT}`);
 });
