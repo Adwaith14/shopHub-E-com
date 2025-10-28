@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
 
   // API Base URL
-  const API_BASE = 'https://your-backend-app.onrender.com/api';
+  const API_BASE = 'https://shophub-e-com.onrender.com/api';
 
   useEffect(() => {
     if (token) {
