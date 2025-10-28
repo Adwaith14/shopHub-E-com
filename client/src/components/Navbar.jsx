@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { useContext } from 'react';
 import { CartContext } from '../context/CartContext';
 import AuthModal from './AuthModal';
-import '../styles/navbar.css';
 
 const Navbar = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
