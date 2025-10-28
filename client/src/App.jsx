@@ -11,9 +11,7 @@ import AdminPanel from './pages/AdminPanel';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import './index.css';
-import './styles/navbar.css';
-import './styles/footer.css';
-import './styles/products.css';
+
 
 function App() {
   return (
