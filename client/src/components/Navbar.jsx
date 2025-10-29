@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -35,7 +36,6 @@ const Navbar = () => {
     setMobileMenuOpen(false);
   };
 
-  // Check if user is admin
   const isAdmin = user && user.role === 'admin';
 
   return (
@@ -54,13 +54,13 @@ const Navbar = () => {
                 <>
                   <li><Link to="/products">Products</Link></li>
                   <li><Link to="/about">About</Link></li>
+                  <li><Link to="/contact">Contact</Link></li>
                 </>
               )}
             </ul>
           </div>
 
           <div className="nav-right">
-            {/* Search - Always Visible for regular users */}
             {!isAdmin && (
               <div className="search-container">
                 <input 
@@ -77,7 +77,6 @@ const Navbar = () => {
               </div>
             )}
 
-            {/* Cart Icon - Hidden for Admin */}
             {!isAdmin && (
               <Link to="/cart" className="nav-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -89,7 +88,6 @@ const Navbar = () => {
               </Link>
             )}
 
-            {/* Desktop Auth Buttons */}
             {user ? (
               <div className="user-menu-wrapper desktop-only">
                 <button 
@@ -123,7 +121,6 @@ const Navbar = () => {
               </>
             )}
 
-            {/* Mobile Hamburger Menu Button */}
             <button 
               className="mobile-menu-button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -145,7 +142,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Menu Dropdown */}
+        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="mobile-menu">
             <div className="mobile-menu-content">
@@ -159,6 +156,7 @@ const Navbar = () => {
                   <>
                     <Link to="/products" onClick={closeMobileMenu}>Products</Link>
                     <Link to="/about" onClick={closeMobileMenu}>About</Link>
+                    <Link to="/contact" onClick={closeMobileMenu}>Contact</Link>
                   </>
                 )}
               </div>

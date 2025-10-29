@@ -41,7 +41,6 @@ const OrderSchema = new mongoose.Schema({
    deliveredAt: {
       type: Date
    },
-   // NEW FIELDS FOR ORDER CONFIRMATION
    isConfirmed: {
       type: Boolean,
       default: false

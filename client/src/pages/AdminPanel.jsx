@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
@@ -74,7 +75,6 @@ const AdminPanel = () => {
 
   const fetchUsers = async () => {
     try {
-      // Try multiple possible endpoints
       let response = await fetch(`${API_BASE}/auth/users`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -82,7 +82,6 @@ const AdminPanel = () => {
       });
 
       if (!response.ok) {
-        // Try alternative endpoint
         response = await fetch(`${API_BASE}/users/all`, {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -100,9 +99,14 @@ const AdminPanel = () => {
       }
     } catch (error) {
       console.error('Error fetching users:', error);
-      // Set empty array instead of failing
       setUsers([]);
     }
+  };
+
+  const showMessage = (message, type = 'success') => {
+    setPanelMsg(message);
+    setPanelMsgType(type);
+    setTimeout(() => setPanelMsg(''), 3000);
   };
 
   const confirmOrder = async (orderId, days) => {
@@ -126,20 +130,14 @@ const AdminPanel = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setPanelMsg(`Order confirmed! Will be delivered in ${days} days`);
-        setPanelMsgType('success');
-        setTimeout(() => setPanelMsg(''), 3000);
+        showMessage(`Order confirmed! Will be delivered in ${days} days`, 'success');
         fetchOrders();
         setSelectedOrder(null);
       } else {
-        setPanelMsg(data.message || 'Failed to confirm order');
-        setPanelMsgType('error');
-        setTimeout(() => setPanelMsg(''), 3000);
+        showMessage(data.message || 'Failed to confirm order', 'error');
       }
     } catch (error) {
-      setPanelMsg('Error confirming order');
-      setPanelMsgType('error');
-      setTimeout(() => setPanelMsg(''), 3000);
+      showMessage('Error confirming order', 'error');
     }
   };
 
@@ -160,19 +158,13 @@ const AdminPanel = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setPanelMsg('Order marked as delivered!');
-        setPanelMsgType('success');
-        setTimeout(() => setPanelMsg(''), 3000);
+        showMessage('Order marked as delivered!', 'success');
         fetchOrders();
       } else {
-        setPanelMsg(data.message || 'Failed to update order');
-        setPanelMsgType('error');
-        setTimeout(() => setPanelMsg(''), 3000);
+        showMessage(data.message || 'Failed to update order', 'error');
       }
     } catch (error) {
-      setPanelMsg('Error updating order');
-      setPanelMsgType('error');
-      setTimeout(() => setPanelMsg(''), 3000);
+      showMessage('Error updating order', 'error');
     }
   };
 
@@ -201,9 +193,7 @@ const AdminPanel = () => {
       const data = await response.json();
 
       if (data.success) {
-        setPanelMsg(editingProduct ? 'Product updated!' : 'Product created!');
-        setPanelMsgType('success');
-        setTimeout(() => setPanelMsg(''), 3000);
+        showMessage(editingProduct ? 'Product updated!' : 'Product created!', 'success');
         setShowProductForm(false);
         setEditingProduct(null);
         setProductForm({
@@ -217,14 +207,10 @@ const AdminPanel = () => {
         });
         fetchProducts();
       } else {
-        setPanelMsg(data.message || 'Error saving product');
-        setPanelMsgType('error');
-        setTimeout(() => setPanelMsg(''), 3000);
+        showMessage(data.message || 'Error saving product', 'error');
       }
     } catch (error) {
-      setPanelMsg('Error saving product');
-      setPanelMsgType('error');
-      setTimeout(() => setPanelMsg(''), 3000);
+      showMessage('Error saving product', 'error');
     }
   };
 
@@ -244,25 +230,18 @@ const AdminPanel = () => {
       const data = await response.json();
 
       if (data.success) {
-        setPanelMsg('Product deleted!');
-        setPanelMsgType('success');
-        setTimeout(() => setPanelMsg(''), 3000);
+        showMessage('Product deleted!', 'success');
         fetchProducts();
       } else {
-        setPanelMsg('Failed to delete product');
-        setPanelMsgType('error');
-        setTimeout(() => setPanelMsg(''), 3000);
+        showMessage('Failed to delete product', 'error');
       }
     } catch (error) {
-      setPanelMsg('Error deleting product');
-      setPanelMsgType('error');
-      setTimeout(() => setPanelMsg(''), 3000);
+      showMessage('Error deleting product', 'error');
     }
   };
 
   const toggleStock = async (product) => {
     try {
-      // Toggle: if > 0, set to 0; if 0, set to 10
       const newStock = product.countInStock > 0 ? 0 : 10;
 
       const response = await fetch(`${API_BASE}/products/${product._id}`, {
@@ -280,19 +259,13 @@ const AdminPanel = () => {
       const data = await response.json();
 
       if (data.success) {
-        setPanelMsg(newStock === 0 ? 'Marked Out of Stock!' : 'Marked In Stock!');
-        setPanelMsgType('success');
-        setTimeout(() => setPanelMsg(''), 3000);
+        showMessage(newStock === 0 ? 'Marked Out of Stock!' : 'Marked In Stock!', 'success');
         fetchProducts();
       } else {
-        setPanelMsg('Failed to update stock');
-        setPanelMsgType('error');
-        setTimeout(() => setPanelMsg(''), 3000);
+        showMessage('Failed to update stock', 'error');
       }
     } catch (error) {
-      setPanelMsg('Error updating stock');
-      setPanelMsgType('error');
-      setTimeout(() => setPanelMsg(''), 3000);
+      showMessage('Error updating stock', 'error');
     }
   };
 
@@ -310,6 +283,13 @@ const AdminPanel = () => {
     setShowProductForm(true);
   };
 
+  const getOrderStatus = (order) => {
+    if (order.isCancelled) return { text: 'Cancelled', color: 'var(--error)' };
+    if (order.isDelivered) return { text: 'Delivered', color: 'var(--success)' };
+    if (order.isConfirmed) return { text: 'Confirmed', color: 'var(--accent)' };
+    return { text: 'Pending', color: '#f59e0b' };
+  };
+
   if (!user || user.role !== 'admin') {
     return null;
   }
@@ -318,40 +298,84 @@ const AdminPanel = () => {
     <>
       <Navbar />
       <main>
-        <section className="admin-panel">
+        <section className="admin-panel" style={{ padding: '60px 0', minHeight: '80vh' }}>
           <div className="container">
             <h1 style={{ marginBottom: '32px', fontSize: '42px' }}>Admin Dashboard</h1>
+
             {panelMsg && (
-              <div
-                style={{
-                  background: panelMsgType === 'success' ? 'var(--success)' : 'var(--error)',
-                  color: 'white',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  marginBottom: '24px',
-                  textAlign: 'center',
-                  fontWeight: 700
-                }}
-              >
+              <div style={{
+                background: panelMsgType === 'success' ? 'var(--success)' : 'var(--error)',
+                color: 'white',
+                borderRadius: '8px',
+                padding: '16px 24px',
+                marginBottom: '24px',
+                textAlign: 'center',
+                fontWeight: '600',
+                animation: 'slideInDown 0.3s ease'
+              }}>
                 {panelMsg}
               </div>
             )}
-            <div className="admin-tabs">
+
+            <div className="admin-tabs" style={{
+              display: 'flex',
+              gap: '12px',
+              marginBottom: '32px',
+              borderBottom: '2px solid var(--border)',
+              overflowX: 'auto',
+              paddingBottom: '0'
+            }}>
               <button
                 className={`admin-tab ${activeTab === 'orders' ? 'active' : ''}`}
                 onClick={() => setActiveTab('orders')}
+                style={{
+                  padding: '16px 24px',
+                  background: activeTab === 'orders' ? 'var(--primary)' : 'transparent',
+                  color: activeTab === 'orders' ? 'white' : 'var(--text-primary)',
+                  border: 'none',
+                  borderBottom: activeTab === 'orders' ? '3px solid var(--primary)' : '3px solid transparent',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '15px',
+                  transition: 'var(--transition)',
+                  whiteSpace: 'nowrap'
+                }}
               >
                 Orders ({orders.length})
               </button>
               <button
                 className={`admin-tab ${activeTab === 'products' ? 'active' : ''}`}
                 onClick={() => setActiveTab('products')}
+                style={{
+                  padding: '16px 24px',
+                  background: activeTab === 'products' ? 'var(--primary)' : 'transparent',
+                  color: activeTab === 'products' ? 'white' : 'var(--text-primary)',
+                  border: 'none',
+                  borderBottom: activeTab === 'products' ? '3px solid var(--primary)' : '3px solid transparent',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '15px',
+                  transition: 'var(--transition)',
+                  whiteSpace: 'nowrap'
+                }}
               >
                 Products ({products.length})
               </button>
               <button
                 className={`admin-tab ${activeTab === 'users' ? 'active' : ''}`}
                 onClick={() => setActiveTab('users')}
+                style={{
+                  padding: '16px 24px',
+                  background: activeTab === 'users' ? 'var(--primary)' : 'transparent',
+                  color: activeTab === 'users' ? 'white' : 'var(--text-primary)',
+                  border: 'none',
+                  borderBottom: activeTab === 'users' ? '3px solid var(--primary)' : '3px solid transparent',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '15px',
+                  transition: 'var(--transition)',
+                  whiteSpace: 'nowrap'
+                }}
               >
                 Users ({users.length})
               </button>
@@ -360,98 +384,108 @@ const AdminPanel = () => {
             {/* ORDERS TAB */}
             {activeTab === 'orders' && (
               <div className="admin-content">
-                <h2 style={{ marginBottom: '24px' }}>Manage Orders</h2>
+                <h2 style={{ marginBottom: '24px', fontSize: '28px' }}>Manage Orders</h2>
                 {orders.length === 0 ? (
                   <p style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                     No orders yet
                   </p>
                 ) : (
-                  <div className="admin-table">
-                    <table>
+                  <div className="admin-table" style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
-                        <tr>
-                          <th>Order ID</th>
-                          <th>Customer</th>
-                          <th>Total</th>
-                          <th>Payment</th>
-                          <th>Status</th>
-                          <th>Delivery</th>
-                          <th>Date</th>
-                          <th>Actions</th>
+                        <tr style={{ background: 'var(--bg-elevated)', borderBottom: '2px solid var(--border)' }}>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Order ID</th>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Customer</th>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Total</th>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Payment</th>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Status</th>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Delivery</th>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Date</th>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {orders.map((order) => (
-                          <tr key={order._id}>
-                            <td data-label="Order ID">#{order._id.slice(-8)}</td>
-                            <td data-label="Customer">{order.user?.name || 'N/A'}</td>
-                            <td data-label="Total">${order.totalPrice.toFixed(2)}</td>
-                            <td data-label="Payment">
-                              <span style={{
-                                color: order.isPaid ? 'var(--success)' : 'var(--error)',
-                                fontWeight: '600'
-                              }}>
-                                {order.isPaid ? 'Paid' : 'Pending'}
-                              </span>
-                            </td>
-                            <td data-label="Status">
-                              <span style={{
-                                color: order.isDelivered ? 'var(--success)' : order.isConfirmed ? 'var(--accent)' : 'var(--error)',
-                                fontWeight: '600'
-                              }}>
-                                {order.isDelivered ? 'Delivered' : order.isConfirmed ? 'Confirmed' : 'Pending'}
-                              </span>
-                            </td>
-                            <td data-label="Delivery">
-                              {order.estimatedDelivery ? (
-                                <span style={{ fontSize: '13px' }}>
-                                  {new Date(order.estimatedDelivery).toLocaleDateString()}
+                        {orders.map((order) => {
+                          const status = getOrderStatus(order);
+                          return (
+                            <tr key={order._id} style={{ borderBottom: '1px solid var(--border)' }}>
+                              <td style={{ padding: '16px' }} data-label="Order ID">#{order._id.slice(-8)}</td>
+                              <td style={{ padding: '16px' }} data-label="Customer">{order.user?.name || 'N/A'}</td>
+                              <td style={{ padding: '16px' }} data-label="Total">${order.totalPrice.toFixed(2)}</td>
+                              <td style={{ padding: '16px' }} data-label="Payment">
+                                <span style={{
+                                  color: order.isPaid ? 'var(--success)' : 'var(--error)',
+                                  fontWeight: '600'
+                                }}>
+                                  {order.isPaid ? 'Paid' : 'Pending'}
                                 </span>
-                              ) : (
-                                <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Not set</span>
-                              )}
-                            </td>
-                            <td data-label="Date">{new Date(order.createdAt).toLocaleDateString()}</td>
-                            <td data-label="Actions">
-                              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                {!order.isConfirmed && (
-                                  <button
-                                    onClick={() => setSelectedOrder(order)}
-                                    style={{
-                                      padding: '6px 12px',
-                                      background: 'var(--primary)',
-                                      color: 'white',
-                                      borderRadius: '6px',
-                                      fontSize: '13px',
-                                      whiteSpace: 'nowrap',
-                                      border: 'none',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    Confirm Order
-                                  </button>
+                              </td>
+                              <td style={{ padding: '16px' }} data-label="Status">
+                                <span style={{
+                                  color: status.color,
+                                  fontWeight: '600'
+                                }}>
+                                  {status.text}
+                                </span>
+                              </td>
+                              <td style={{ padding: '16px', fontSize: '13px' }} data-label="Delivery">
+                                {order.estimatedDelivery ? (
+                                  <span>{new Date(order.estimatedDelivery).toLocaleDateString()}</span>
+                                ) : (
+                                  <span style={{ color: 'var(--text-muted)' }}>Not set</span>
                                 )}
-                                {order.isConfirmed && !order.isDelivered && (
-                                  <button
-                                    onClick={() => markAsDelivered(order._id)}
-                                    style={{
-                                      padding: '6px 12px',
-                                      background: 'var(--success)',
-                                      color: 'white',
-                                      borderRadius: '6px',
-                                      fontSize: '13px',
-                                      whiteSpace: 'nowrap',
-                                      border: 'none',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    Mark Delivered
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td style={{ padding: '16px', fontSize: '13px' }} data-label="Date">
+                                {new Date(order.createdAt).toLocaleDateString()}
+                              </td>
+                              <td style={{ padding: '16px' }} data-label="Actions">
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                  {!order.isCancelled && !order.isConfirmed && (
+                                    <button
+                                      onClick={() => setSelectedOrder(order)}
+                                      style={{
+                                        padding: '8px 14px',
+                                        background: 'var(--primary)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        fontSize: '13px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        whiteSpace: 'nowrap'
+                                      }}
+                                    >
+                                      Confirm Order
+                                    </button>
+                                  )}
+                                  {!order.isCancelled && order.isConfirmed && !order.isDelivered && (
+                                    <button
+                                      onClick={() => markAsDelivered(order._id)}
+                                      style={{
+                                        padding: '8px 14px',
+                                        background: 'var(--success)',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        fontSize: '13px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        whiteSpace: 'nowrap'
+                                      }}
+                                    >
+                                      Mark Delivered
+                                    </button>
+                                  )}
+                                  {order.isCancelled && (
+                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                                      Cancelled by user
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -463,9 +497,23 @@ const AdminPanel = () => {
             {selectedOrder && (
               <div className="modal-overlay" onClick={() => setSelectedOrder(null)}>
                 <div className="modal-content" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
-                  <div className="modal-header">
-                    <h2>Confirm Order #{selectedOrder._id.slice(-8)}</h2>
-                    <button onClick={() => setSelectedOrder(null)} className="modal-close">
+                  <div className="modal-header" style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '24px',
+                    borderBottom: '1px solid var(--border)'
+                  }}>
+                    <h2 style={{ margin: 0 }}>Confirm Order #{selectedOrder._id.slice(-8)}</h2>
+                    <button 
+                      onClick={() => setSelectedOrder(null)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '8px'
+                      }}
+                    >
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -477,11 +525,12 @@ const AdminPanel = () => {
                       Set estimated delivery time for this order:
                     </p>
                     <div className="form-group">
-                      <label>Delivery Time (days)</label>
+                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>
+                        Delivery Time (days)
+                      </label>
                       <select
                         value={deliveryDays}
                         onChange={(e) => setDeliveryDays(parseInt(e.target.value))}
-                        className="delivery-select"
                         style={{
                           width: '100%',
                           padding: '12px',
@@ -512,7 +561,7 @@ const AdminPanel = () => {
                       <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '8px' }}>
                         Estimated Delivery Date:
                       </p>
-                      <p style={{ fontSize: '18px', fontWeight: '700', color: 'var(--primary)' }}>
+                      <p style={{ fontSize: '18px', fontWeight: '700', color: 'var(--primary)', margin: 0 }}>
                         {new Date(Date.now() + deliveryDays * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
                           weekday: 'long',
                           year: 'numeric',
@@ -525,14 +574,14 @@ const AdminPanel = () => {
                       <button
                         onClick={() => confirmOrder(selectedOrder._id, deliveryDays)}
                         className="btn-primary"
-                        style={{ flex: 1 }}
+                        style={{ flex: 1, padding: '14px' }}
                       >
                         Confirm Order
                       </button>
                       <button
                         onClick={() => setSelectedOrder(null)}
                         className="btn-secondary"
-                        style={{ flex: 1 }}
+                        style={{ flex: 1, padding: '14px' }}
                       >
                         Cancel
                       </button>
@@ -542,11 +591,11 @@ const AdminPanel = () => {
               </div>
             )}
 
-            {/* PRODUCTS TAB */}
+            {/* PRODUCTS TAB - Keep existing code */}
             {activeTab === 'products' && (
               <div className="admin-content">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-                  <h2>Manage Products</h2>
+                  <h2 style={{ fontSize: '28px' }}>Manage Products</h2>
                   <button
                     onClick={() => {
                       setShowProductForm(true);
@@ -568,46 +617,84 @@ const AdminPanel = () => {
                 </div>
 
                 {showProductForm && (
-                  <div className="admin-form-wrapper">
-                    <form onSubmit={handleProductSubmit} className="admin-form">
-                      <h3>{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
-                      <div className="form-group">
-                        <label>Product Name</label>
+                  <div className="admin-form-wrapper" style={{ marginBottom: '32px' }}>
+                    <form onSubmit={handleProductSubmit} className="admin-form" style={{
+                      background: 'var(--bg-card)',
+                      padding: '32px',
+                      borderRadius: 'var(--radius-lg)',
+                      border: '1px solid var(--border)'
+                    }}>
+                      <h3 style={{ marginBottom: '24px' }}>{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
+                      <div className="form-group" style={{ marginBottom: '20px' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Product Name</label>
                         <input
                           type="text"
                           value={productForm.name}
                           onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                           required
+                          style={{
+                            width: '100%',
+                            padding: '12px',
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            background: 'var(--bg-elevated)',
+                            fontSize: '15px'
+                          }}
                         />
                       </div>
-                      <div className="form-row">
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
                         <div className="form-group">
-                          <label>Price ($)</label>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Price ($)</label>
                           <input
                             type="number"
                             step="0.01"
                             value={productForm.price}
                             onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
                             required
+                            style={{
+                              width: '100%',
+                              padding: '12px',
+                              border: '1px solid var(--border)',
+                              borderRadius: '8px',
+                              background: 'var(--bg-elevated)',
+                              fontSize: '15px'
+                            }}
                           />
                         </div>
                         <div className="form-group">
-                          <label>Stock Quantity</label>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Stock Quantity</label>
                           <input
                             type="number"
                             value={productForm.countInStock}
                             onChange={(e) => setProductForm({ ...productForm, countInStock: e.target.value })}
                             required
+                            style={{
+                              width: '100%',
+                              padding: '12px',
+                              border: '1px solid var(--border)',
+                              borderRadius: '8px',
+                              background: 'var(--bg-elevated)',
+                              fontSize: '15px'
+                            }}
                           />
                         </div>
                       </div>
-                      <div className="form-row">
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
                         <div className="form-group">
-                          <label>Category</label>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Category</label>
                           <select
                             value={productForm.category}
                             onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
                             required
+                            style={{
+                              width: '100%',
+                              padding: '12px',
+                              border: '1px solid var(--border)',
+                              borderRadius: '8px',
+                              background: 'var(--bg-elevated)',
+                              fontSize: '15px',
+                              cursor: 'pointer'
+                            }}
                           >
                             <option value="">Select Category</option>
                             <option value="Men's Clothing">Men's Clothing</option>
@@ -618,7 +705,7 @@ const AdminPanel = () => {
                           </select>
                         </div>
                         <div className="form-group">
-                          <label>Rating</label>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Rating</label>
                           <input
                             type="number"
                             step="0.1"
@@ -626,28 +713,54 @@ const AdminPanel = () => {
                             max="5"
                             value={productForm.rating}
                             onChange={(e) => setProductForm({ ...productForm, rating: e.target.value })}
+                            style={{
+                              width: '100%',
+                              padding: '12px',
+                              border: '1px solid var(--border)',
+                              borderRadius: '8px',
+                              background: 'var(--bg-elevated)',
+                              fontSize: '15px'
+                            }}
                           />
                         </div>
                       </div>
-                      <div className="form-group">
-                        <label>Image URL</label>
+                      <div className="form-group" style={{ marginBottom: '20px' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Image URL</label>
                         <input
                           type="url"
                           value={productForm.image}
                           onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
                           required
+                          style={{
+                            width: '100%',
+                            padding: '12px',
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            background: 'var(--bg-elevated)',
+                            fontSize: '15px'
+                          }}
                         />
                       </div>
-                      <div className="form-group">
-                        <label>Description</label>
+                      <div className="form-group" style={{ marginBottom: '24px' }}>
+                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Description</label>
                         <textarea
                           rows="4"
                           value={productForm.description}
                           onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '12px',
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            background: 'var(--bg-elevated)',
+                            fontSize: '15px',
+                            resize: 'vertical',
+                            fontFamily: 'inherit'
+                          }}
                         />
                       </div>
                       <div style={{ display: 'flex', gap: '12px' }}>
-                        <button type="submit" className="btn-primary">
+                        <button type="submit" className="btn-primary" style={{ padding: '14px 24px' }}>
                           {editingProduct ? 'Update Product' : 'Create Product'}
                         </button>
                         <button
@@ -657,6 +770,7 @@ const AdminPanel = () => {
                             setEditingProduct(null);
                           }}
                           className="btn-secondary"
+                          style={{ padding: '14px 24px' }}
                         >
                           Cancel
                         </button>
@@ -665,29 +779,39 @@ const AdminPanel = () => {
                   </div>
                 )}
 
-                <div className="admin-table">
-                  <table>
+                <div className="admin-table" style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Stock</th>
-                        <th>Rating</th>
-                        <th>Actions</th>
+                      <tr style={{ background: 'var(--bg-elevated)', borderBottom: '2px solid var(--border)' }}>
+                        <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Image</th>
+                        <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Name</th>
+                        <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Category</th>
+                        <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Price</th>
+                        <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Stock</th>
+                        <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Rating</th>
+                        <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {products.map((product) => (
-                        <tr key={product._id}>
-                          <td data-label="Image">
-                            <img src={product.image} alt={product.name} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }} />
+                        <tr key={product._id} style={{ borderBottom: '1px solid var(--border)' }}>
+                          <td style={{ padding: '16px' }} data-label="Image">
+                            <img 
+                              src={product.image} 
+                              alt={product.name} 
+                              style={{ 
+                                width: '60px', 
+                                height: '60px', 
+                                objectFit: 'cover', 
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)'
+                              }} 
+                            />
                           </td>
-                          <td data-label="Name">{product.name}</td>
-                          <td data-label="Category">{product.category}</td>
-                          <td data-label="Price">${product.price}</td>
-                          <td data-label="Stock">
+                          <td style={{ padding: '16px' }} data-label="Name">{product.name}</td>
+                          <td style={{ padding: '16px' }} data-label="Category">{product.category}</td>
+                          <td style={{ padding: '16px' }} data-label="Price">${product.price}</td>
+                          <td style={{ padding: '16px' }} data-label="Stock">
                             <span style={{
                               color: product.countInStock > 0 ? 'var(--success)' : 'var(--error)',
                               fontWeight: '600'
@@ -695,18 +819,19 @@ const AdminPanel = () => {
                               {product.countInStock > 0 ? `${product.countInStock} in stock` : 'Out of Stock'}
                             </span>
                           </td>
-                          <td data-label="Rating">⭐ {product.rating}</td>
-                          <td data-label="Actions">
+                          <td style={{ padding: '16px' }} data-label="Rating">⭐ {product.rating}</td>
+                          <td style={{ padding: '16px' }} data-label="Actions">
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                               <button
                                 onClick={() => handleEditProduct(product)}
                                 style={{
-                                  padding: '6px 12px',
+                                  padding: '8px 14px',
                                   background: 'var(--primary)',
                                   color: 'white',
+                                  border: 'none',
                                   borderRadius: '6px',
                                   fontSize: '13px',
-                                  border: 'none',
+                                  fontWeight: '600',
                                   cursor: 'pointer'
                                 }}
                               >
@@ -715,27 +840,29 @@ const AdminPanel = () => {
                               <button
                                 onClick={() => toggleStock(product)}
                                 style={{
-                                  padding: '6px 12px',
+                                  padding: '8px 14px',
                                   background: product.countInStock > 0 ? 'var(--error)' : 'var(--success)',
                                   color: 'white',
+                                  border: 'none',
                                   borderRadius: '6px',
                                   fontSize: '13px',
-                                  whiteSpace: 'nowrap',
-                                  border: 'none',
-                                  cursor: 'pointer'
+                                  fontWeight: '600',
+                                  cursor: 'pointer',
+                                  whiteSpace: 'nowrap'
                                 }}
                               >
-                                {product.countInStock > 0 ? 'Mark Out of Stock' : 'Mark In Stock'}
+                                {product.countInStock > 0 ? 'Mark Out' : 'Mark In'}
                               </button>
                               <button
                                 onClick={() => handleDeleteProduct(product._id)}
                                 style={{
-                                  padding: '6px 12px',
+                                  padding: '8px 14px',
                                   background: 'var(--error)',
                                   color: 'white',
+                                  border: 'none',
                                   borderRadius: '6px',
                                   fontSize: '13px',
-                                  border: 'none',
+                                  fontWeight: '600',
                                   cursor: 'pointer'
                                 }}
                               >
@@ -754,29 +881,33 @@ const AdminPanel = () => {
             {/* USERS TAB */}
             {activeTab === 'users' && (
               <div className="admin-content">
-                <h2>All Users</h2>
+                <h2 style={{ marginBottom: '24px', fontSize: '28px' }}>All Users</h2>
                 {users.length === 0 ? (
                   <p style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                    No users found. This might be an API endpoint issue.
+                    No users found
                   </p>
                 ) : (
-                  <div className="admin-table">
-                    <table>
+                  <div className="admin-table" style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Email</th>
-                          <th>Role</th>
-                          <th>Joined</th>
+                        <tr style={{ background: 'var(--bg-elevated)', borderBottom: '2px solid var(--border)' }}>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Name</th>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Email</th>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Role</th>
+                          <th style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>Joined</th>
                         </tr>
                       </thead>
                       <tbody>
                         {users.map((u) => (
-                          <tr key={u._id}>
-                            <td data-label="Name">{u.name}</td>
-                            <td data-label="Email">{u.email}</td>
-                            <td data-label="Role" style={{ textTransform: 'capitalize', fontWeight: '600' }}>{u.role}</td>
-                            <td data-label="Joined">{new Date(u.createdAt).toLocaleDateString()}</td>
+                          <tr key={u._id} style={{ borderBottom: '1px solid var(--border)' }}>
+                            <td style={{ padding: '16px' }} data-label="Name">{u.name}</td>
+                            <td style={{ padding: '16px' }} data-label="Email">{u.email}</td>
+                            <td style={{ padding: '16px', textTransform: 'capitalize', fontWeight: '600' }} data-label="Role">
+                              {u.role}
+                            </td>
+                            <td style={{ padding: '16px', fontSize: '13px' }} data-label="Joined">
+                              {new Date(u.createdAt).toLocaleDateString()}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

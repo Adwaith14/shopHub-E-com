@@ -23,13 +23,10 @@ const ContactPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // For now, just show success message (not saving anywhere)
     console.log('Form submitted:', formData);
 
-    // Show success modal
     setShowSuccess(true);
 
-    // Reset form
     setFormData({
       name: '',
       email: '',
@@ -37,7 +34,6 @@ const ContactPage = () => {
       message: ''
     });
 
-    // Hide success message after 5 seconds
     setTimeout(() => {
       setShowSuccess(false);
     }, 5000);
@@ -50,7 +46,7 @@ const ContactPage = () => {
         <section className="contact-page">
           <div className="container">
             {/* Header */}
-            <div className="contact-header" style={{ textAlign: 'center', marginBottom: '64px' }}>
+            <div className="contact-header">
               <h1 style={{ fontSize: '48px', marginBottom: '16px' }}>Get in Touch</h1>
               <p style={{ fontSize: '20px', color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto' }}>
                 Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
@@ -65,14 +61,7 @@ const ContactPage = () => {
               marginBottom: '64px'
             }}>
               {/* Customer Care Info Cards */}
-              <div className="contact-card" style={{
-                background: 'var(--bg-card)',
-                padding: '32px',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border)',
-                textAlign: 'center',
-                transition: 'var(--transition)'
-              }}>
+              <div className="contact-card">
                 <div style={{
                   width: '64px',
                   height: '64px',
@@ -94,20 +83,14 @@ const ContactPage = () => {
                 <a href="tel:+1234567890" style={{
                   fontSize: '20px',
                   fontWeight: '700',
-                  color: 'var(--primary)'
+                  color: 'var(--primary)',
+                  textDecoration: 'none'
                 }}>
                   +1 (234) 567-890
                 </a>
               </div>
 
-              <div className="contact-card" style={{
-                background: 'var(--bg-card)',
-                padding: '32px',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border)',
-                textAlign: 'center',
-                transition: 'var(--transition)'
-              }}>
+              <div className="contact-card">
                 <div style={{
                   width: '64px',
                   height: '64px',
@@ -130,20 +113,14 @@ const ContactPage = () => {
                 <a href="mailto:support@shophub.com" style={{
                   fontSize: '20px',
                   fontWeight: '700',
-                  color: 'var(--primary)'
+                  color: 'var(--primary)',
+                  textDecoration: 'none'
                 }}>
                   support@shophub.com
                 </a>
               </div>
 
-              <div className="contact-card" style={{
-                background: 'var(--bg-card)',
-                padding: '32px',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border)',
-                textAlign: 'center',
-                transition: 'var(--transition)'
-              }}>
+              <div className="contact-card">
                 <div style={{
                   width: '64px',
                   height: '64px',
@@ -167,7 +144,8 @@ const ContactPage = () => {
                   fontSize: '16px',
                   fontWeight: '600',
                   color: 'var(--text-primary)',
-                  lineHeight: '1.6'
+                  lineHeight: '1.6',
+                  margin: 0
                 }}>
                   123 Commerce Street<br/>
                   New York, NY 10013
@@ -279,8 +257,8 @@ const ContactPage = () => {
               </div>
             )}
 
-            {/* FAQ Section */}
-            <div style={{ marginTop: '96px', textAlign: 'center' }}>
+            {/* FAQ Section with FIXED MARGIN */}
+            <div style={{ marginTop: '96px', marginBottom: '60px', textAlign: 'center' }}>
               <h2 style={{ fontSize: '36px', marginBottom: '16px' }}>Frequently Asked Questions</h2>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '48px', fontSize: '18px' }}>
                 Quick answers to common questions
@@ -301,7 +279,7 @@ const ContactPage = () => {
                   <h4 style={{ fontSize: '18px', marginBottom: '12px', fontWeight: '700' }}>
                     What are your shipping times?
                   </h4>
-                  <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                  <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
                     Standard shipping takes 3-5 business days. Express shipping is available for 1-2 day delivery.
                   </p>
                 </div>
@@ -315,7 +293,7 @@ const ContactPage = () => {
                   <h4 style={{ fontSize: '18px', marginBottom: '12px', fontWeight: '700' }}>
                     What's your return policy?
                   </h4>
-                  <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                  <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
                     We offer 30-day returns on most items. Products must be unused and in original packaging.
                   </p>
                 </div>
@@ -329,7 +307,7 @@ const ContactPage = () => {
                   <h4 style={{ fontSize: '18px', marginBottom: '12px', fontWeight: '700' }}>
                     Do you ship internationally?
                   </h4>
-                  <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                  <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
                     Yes! We ship to over 100 countries worldwide. International shipping takes 7-14 business days.
                   </p>
                 </div>

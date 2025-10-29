@@ -125,7 +125,7 @@ router.get('/', protect, admin, async (req, res) => {
 });
 
 // @route   PUT /api/orders/:id/confirm
-// @desc    Confirm order and set delivery date (NEW ENDPOINT)
+// @desc    Confirm order and set delivery date
 // @access  Private/Admin
 router.put('/:id/confirm', protect, admin, async (req, res) => {
     try {
@@ -191,6 +191,10 @@ router.put('/:id/deliver', protect, admin, async (req, res) => {
         });
     }
 });
+
+// @route   PUT /api/orders/:id/cancel
+// @desc    Cancel order
+// @access  Private
 router.put('/:id/cancel', protect, async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
