@@ -9,16 +9,16 @@ import { useAuth } from '../context/AuthContext';
 const ProductsPage = () => {
   const { addToCart, updateQuantity, isInCart, getCartItem, toast, setToast } = useContext(CartContext);
   const { API_BASE } = useAuth();
-  
+
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [timeLeft, setTimeLeft] = useState(60);
-  
+  const [error, setError] = useState(null);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 12;
-  
+
   const [filters, setFilters] = useState({
     category: 'all',
     priceRange: 'all',
@@ -27,40 +27,48 @@ const ProductsPage = () => {
     search: ''
   });
 
+  // FETCH PRODUCTS FROM DATABASE
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    if (loading && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, timeLeft]);
-
   const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
+
     try {
       const response = await fetch(`${API_BASE}/products`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+
       const data = await response.json();
-      
+
       if (data.success) {
         setProducts(data.products);
         setFilteredProducts(data.products);
+      } else {
+        throw new Error(data.message || 'Error loading products');
       }
-    } catch (error) {
-      console.error('Failed to fetch products:', error);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  // Filter and sort products
   useEffect(() => {
     let result = [...products];
 
+    // Category filter
     if (filters.category !== 'all') {
       result = result.filter(p => p.category === filters.category);
     }
 
+    // Price range filter
     if (filters.priceRange !== 'all') {
       switch (filters.priceRange) {
         case 'under50':
@@ -70,25 +78,28 @@ const ProductsPage = () => {
           result = result.filter(p => p.price >= 50 && p.price <= 100);
           break;
         case '100to200':
-          result = result.filter(p => p.price > 100 && p.price <= 200);
+          result = result.filter(p => p.price >= 100 && p.price <= 200);
           break;
         case 'over200':
-          result = result.filter(p => p.price > 200);
+          result = result.filter(p => p.price >= 200);
           break;
       }
     }
 
+    // Rating filter
     if (filters.rating !== 'all') {
       const minRating = parseFloat(filters.rating);
       result = result.filter(p => p.rating >= minRating);
     }
 
+    // Search filter
     if (filters.search) {
-      result = result.filter(p =>
+      result = result.filter(p => 
         p.name.toLowerCase().includes(filters.search.toLowerCase())
       );
     }
 
+    // Sorting
     switch (filters.sortBy) {
       case 'price-asc':
         result.sort((a, b) => a.price - b.price);
@@ -107,7 +118,7 @@ const ProductsPage = () => {
     }
 
     setFilteredProducts(result);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, [filters, products]);
 
   const handleFilterChange = (filterType, value) => {
@@ -140,13 +151,7 @@ const ProductsPage = () => {
   return (
     <>
       <Navbar />
-      {toast && (
-        <Toast 
-          message={toast.message} 
-          type={toast.type} 
-          onClose={() => setToast(null)} 
-        />
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <main>
         <section className="products-page">
           <div className="container">
@@ -156,12 +161,11 @@ const ProductsPage = () => {
             </div>
 
             <div className="products-layout">
+              {/* Sidebar */}
               <aside className="products-sidebar">
                 <div className="filter-header">
                   <h3>Filters</h3>
-                  <button onClick={clearFilters} className="btn-clear-filters">
-                    Clear All
-                  </button>
+                  <button onClick={clearFilters} className="btn-clear-filters">Clear All</button>
                 </div>
 
                 <div className="filter-group">
@@ -220,9 +224,9 @@ const ProductsPage = () => {
                   <div className="filter-options">
                     {[
                       { value: 'all', label: 'All Ratings' },
-                      { value: '4.5', label: '4.5★ & above' },
-                      { value: '4.0', label: '4.0★ & above' },
-                      { value: '3.5', label: '3.5★ & above' }
+                      { value: '4.5', label: '4.5 & above' },
+                      { value: '4.0', label: '4.0 & above' },
+                      { value: '3.5', label: '3.5 & above' }
                     ].map(option => (
                       <label key={option.value} className="filter-option">
                         <input
@@ -238,17 +242,19 @@ const ProductsPage = () => {
                 </div>
               </aside>
 
+              {/* Main Content */}
               <div className="products-main">
                 <div className="products-toolbar">
                   <span className="products-count">
-                    {filteredProducts.length} Products {totalPages > 1 && `(Page ${currentPage} of ${totalPages})`}
+                    {filteredProducts.length} Products
+                    {totalPages > 1 && ` (Page ${currentPage} of ${totalPages})`}
                   </span>
                   <select
                     value={filters.sortBy}
                     onChange={(e) => handleFilterChange('sortBy', e.target.value)}
                     className="sort-select"
                   >
-                    <option value="default">Sort by: Default</option>
+                    <option value="default">Sort by Default</option>
                     <option value="price-asc">Price: Low to High</option>
                     <option value="price-desc">Price: High to Low</option>
                     <option value="name-asc">Name: A to Z</option>
@@ -260,25 +266,23 @@ const ProductsPage = () => {
                   <div className="loading">
                     <div className="loading-spinner"></div>
                     <p>Loading products from database...</p>
-                    <p style={{ fontSize: '24px', fontWeight: '700', marginTop: '16px' }}>
-                      {timeLeft}s
-                    </p>
-                    <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-                      Please wait, fetching products...
-                    </p>
+                  </div>
+                ) : error ? (
+                  <div className="empty-state">
+                    <h2>Error Loading Products</h2>
+                    <p>{error}</p>
+                    <button onClick={fetchProducts} className="btn-primary">Try Again</button>
                   </div>
                 ) : filteredProducts.length === 0 ? (
                   <div className="empty-state">
                     <h2>No products found</h2>
                     <p>Try adjusting your filters</p>
-                    <button onClick={clearFilters} className="btn-primary">
-                      Clear Filters
-                    </button>
+                    <button onClick={clearFilters} className="btn-primary">Clear Filters</button>
                   </div>
                 ) : (
                   <>
                     <div className="product-grid">
-                      {currentProducts.map((product) => {
+                      {currentProducts.map(product => {
                         const inCart = isInCart(product._id);
                         const cartItem = getCartItem(product._id);
 
@@ -299,7 +303,6 @@ const ProductsPage = () => {
                               <div className="product-pricing">
                                 <span className="product-price">${product.price.toFixed(2)}</span>
                               </div>
-                              
                               {inCart ? (
                                 <div className="quantity-controls">
                                   <button
@@ -308,7 +311,7 @@ const ProductsPage = () => {
                                   >
                                     -
                                   </button>
-                                  <span style={{ fontSize: '16px', fontWeight: '600' }}>
+                                  <span style={{ fontSize: '16px', fontWeight: 600 }}>
                                     {cartItem.quantity}
                                   </span>
                                   <button
@@ -341,9 +344,8 @@ const ProductsPage = () => {
                           disabled={currentPage === 1}
                           className="pagination-btn"
                         >
-                          ← Previous
+                          Previous
                         </button>
-                        
                         <div className="pagination-numbers">
                           {[...Array(totalPages)].map((_, index) => (
                             <button
@@ -355,13 +357,12 @@ const ProductsPage = () => {
                             </button>
                           ))}
                         </div>
-
                         <button
                           onClick={() => paginate(currentPage + 1)}
                           disabled={currentPage === totalPages}
                           className="pagination-btn"
                         >
-                          Next →
+                          Next
                         </button>
                       </div>
                     )}

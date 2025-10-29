@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import Features from '../components/Features';
@@ -6,64 +6,47 @@ import Categories from '../components/Categories';
 import Footer from '../components/Footer';
 import Toast from '../components/Toast';
 import { CartContext } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 const HomePage = () => {
   const { addToCart, updateQuantity, isInCart, getCartItem, toast, setToast } = useContext(CartContext);
+  const { API_BASE } = useAuth();
 
-  const featuredProducts = [
-    {
-      id: 1,
-      _id: 1,
-      name: 'Premium Leather Jacket',
-      price: 249,
-      originalPrice: 399,
-      category: "Women's",
-      image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600&q=80',
-      badge: 'Sale'
-    },
-    {
-      id: 2,
-      _id: 2,
-      name: 'Classic White Sneakers',
-      price: 129,
-      category: 'Footwear',
-      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80',
-      badge: 'New'
-    },
-    {
-      id: 3,
-      _id: 3,
-      name: 'Designer Sunglasses',
-      price: 189,
-      category: 'Accessories',
-      image: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80',
-      badge: 'Trending'
-    },
-    {
-      id: 4,
-      _id: 4,
-      name: 'Premium Sneakers',
-      price: 149,
-      category: 'Footwear',
-      image: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&q=80'
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // FETCH FEATURED PRODUCTS FROM DATABASE
+  useEffect(() => {
+    fetchFeaturedProducts();
+  }, []);
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/products?limit=4`);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setFeaturedProducts(data.products.slice(0, 4));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching featured products:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   return (
     <>
       <Navbar />
-      {toast && (
-        <Toast 
-          message={toast.message} 
-          type={toast.type} 
-          onClose={() => setToast(null)} 
-        />
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <main>
         <Hero />
         <Features />
         <Categories />
-        
+
+        {/* Featured Products Section */}
         <section className="products">
           <div className="container">
             <div className="section-header">
@@ -73,65 +56,72 @@ const HomePage = () => {
               </div>
               <a href="/products" className="link-view-all">View All Products →</a>
             </div>
-            <div className="product-grid">
-              {featuredProducts.map((product) => {
-                const inCart = isInCart(product._id);
-                const cartItem = getCartItem(product._id);
 
-                return (
-                  <div key={product.id} className="product-card">
-                    {product.badge && (
-                      <span className={`product-badge ${product.badge.toLowerCase()}`}>
-                        {product.badge}
-                      </span>
-                    )}
-                    <div className="product-image-wrapper">
-                      <img src={product.image} alt={product.name} />
-                      <div className="product-quick-view">
-                        <button className="btn-quick-view">Quick View</button>
+            {loading ? (
+              <div className="loading">
+                <div className="loading-spinner"></div>
+                <p>Loading featured products...</p>
+              </div>
+            ) : (
+              <div className="product-grid">
+                {featuredProducts.map(product => {
+                  const inCart = isInCart(product._id);
+                  const cartItem = getCartItem(product._id);
+
+                  return (
+                    <div key={product._id} className="product-card">
+                      {product.badge && (
+                        <span className={`product-badge ${product.badge.toLowerCase()}`}>
+                          {product.badge}
+                        </span>
+                      )}
+                      <div className="product-image-wrapper">
+                        <img src={product.image} alt={product.name} />
+                        <div className="product-quick-view">
+                          <button className="btn-quick-view">Quick View</button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="product-info">
-                      <span className="product-category">{product.category}</span>
-                      <h3 className="product-title">{product.name}</h3>
-                      <div className="product-pricing">
-                        <span className="product-price">${product.price}</span>
-                        {product.originalPrice && (
-                          <span className="product-original-price">${product.originalPrice}</span>
+                      <div className="product-info">
+                        <span className="product-category">{product.category}</span>
+                        <h3 className="product-title">{product.name}</h3>
+                        <div className="product-pricing">
+                          <span className="product-price">${product.price}</span>
+                          {product.originalPrice && (
+                            <span className="product-original-price">${product.originalPrice}</span>
+                          )}
+                        </div>
+                        {inCart ? (
+                          <div className="quantity-controls">
+                            <button
+                              className="qty-btn"
+                              onClick={() => updateQuantity(product._id, cartItem.quantity - 1)}
+                            >
+                              -
+                            </button>
+                            <span style={{ fontSize: '16px', fontWeight: 600 }}>
+                              {cartItem.quantity}
+                            </span>
+                            <button
+                              className="qty-btn"
+                              onClick={() => updateQuantity(product._id, cartItem.quantity + 1)}
+                            >
+                              +
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            className="btn-add-to-cart"
+                            onClick={() => addToCart(product)}
+                          >
+                            Add to Cart
+                          </button>
                         )}
                       </div>
-                      
-                      {inCart ? (
-                        <div className="quantity-controls">
-                          <button
-                            className="qty-btn"
-                            onClick={() => updateQuantity(product._id, cartItem.quantity - 1)}
-                          >
-                            -
-                          </button>
-                          <span style={{ fontSize: '16px', fontWeight: '600' }}>
-                            {cartItem.quantity}
-                          </span>
-                          <button
-                            className="qty-btn"
-                            onClick={() => updateQuantity(product._id, cartItem.quantity + 1)}
-                          >
-                            +
-                          </button>
-                        </div>
-                      ) : (
-                        <button 
-                          className="btn-add-to-cart"
-                          onClick={() => addToCart(product)}
-                        >
-                          Add to Cart
-                        </button>
-                      )}
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </section>
       </main>
