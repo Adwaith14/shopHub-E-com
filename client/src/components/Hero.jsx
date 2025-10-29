@@ -24,7 +24,7 @@ const Hero = () => {
           </div>
           <div className="hero-image">
             <img 
-              src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80" 
+              src="https://images.pexels.com/photos/1040945/pexels-photo-1040945.jpeg" 
               alt="Fashion Collection" 
               className="hero-img-main"
             />
