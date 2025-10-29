@@ -8,6 +8,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import ProfilePage from './pages/ProfilePage';
 import OrdersPage from './pages/OrdersPage';
 import AdminPanel from './pages/AdminPanel';
+import ContactPage from './pages/ContactPage';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import './index.css';
@@ -27,6 +28,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/contact" element={<ContactPage />} />
           </Routes>
         </Router>
       </CartProvider>

@@ -54,6 +54,16 @@ const OrderSchema = new mongoose.Schema({
    },
    deliveryDays: {
       type: Number
+   },
+   isCancelled: {
+      type: Boolean,
+      default: false
+   },
+   cancelledAt: {
+      type: Date
+   },
+   cancelReason: {
+      type: String
    }
 }, {
    timestamps: true

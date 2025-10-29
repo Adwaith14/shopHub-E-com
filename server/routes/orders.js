@@ -191,5 +191,58 @@ router.put('/:id/deliver', protect, admin, async (req, res) => {
         });
     }
 });
+router.put('/:id/cancel', protect, async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        // Check if user owns this order
+        if (order.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to cancel this order'
+            });
+        }
+
+        // Check if order can be cancelled
+        if (order.isDelivered) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot cancel delivered order'
+            });
+        }
+
+        if (order.isCancelled) {
+            return res.status(400).json({
+                success: false,
+                message: 'Order is already cancelled'
+            });
+        }
+
+        order.isCancelled = true;
+        order.cancelledAt = Date.now();
+        order.cancelReason = req.body.cancelReason || 'No reason provided';
+
+        const updatedOrder = await order.save();
+
+        res.json({
+            success: true,
+            message: 'Order cancelled successfully',
+            order: updatedOrder
+        });
+    } catch (error) {
+        console.error('Cancel order error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error cancelling order'
+        });
+    }
+});
 
 module.exports = router;
