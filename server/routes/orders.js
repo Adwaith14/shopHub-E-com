@@ -124,6 +124,41 @@ router.get('/', protect, admin, async (req, res) => {
     }
 });
 
+// @route   PUT /api/orders/:id/confirm
+// @desc    Confirm order and set delivery date (NEW ENDPOINT)
+// @access  Private/Admin
+router.put('/:id/confirm', protect, admin, async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+        }
+
+        order.isConfirmed = true;
+        order.confirmedAt = Date.now();
+        order.estimatedDelivery = req.body.estimatedDelivery;
+        order.deliveryDays = req.body.deliveryDays;
+
+        const updatedOrder = await order.save();
+
+        res.json({
+            success: true,
+            message: 'Order confirmed successfully',
+            order: updatedOrder
+        });
+    } catch (error) {
+        console.error('Confirm order error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error confirming order'
+        });
+    }
+});
+
 // @route   PUT /api/orders/:id/deliver
 // @desc    Update order to delivered
 // @access  Private/Admin
@@ -145,6 +180,7 @@ router.put('/:id/deliver', protect, admin, async (req, res) => {
 
         res.json({
             success: true,
+            message: 'Order marked as delivered',
             order: updatedOrder
         });
     } catch (error) {

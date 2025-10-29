@@ -9,11 +9,11 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const { cart, getTotalPrice, clearCart } = useContext(CartContext);
   const { user, token, API_BASE } = useAuth();
-  
+
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [useNewAddress, setUseNewAddress] = useState(true);
-  
+
   const [formData, setFormData] = useState({
     fullName: user?.name || '',
     email: user?.email || '',
@@ -25,7 +25,7 @@ const CheckoutPage = () => {
     country: '',
     paymentMethod: 'card'
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showOrderModal, setShowOrderModal] = useState(false);
@@ -76,7 +76,7 @@ const CheckoutPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!user) {
       alert('Please login to place an order');
       return;
@@ -110,7 +110,6 @@ const CheckoutPage = () => {
         totalPrice: getTotalPrice() + 10 + (getTotalPrice() * 0.1)
       };
 
-      // Simulate loading time
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       const response = await fetch(`${API_BASE}/orders`, {
@@ -128,19 +127,24 @@ const CheckoutPage = () => {
         if (useNewAddress) {
           await saveAddress(formData);
         }
-        
+
+        // Calculate delivery date (default 3 days if not set by admin)
+        const deliveryDate = new Date();
+        deliveryDate.setDate(deliveryDate.getDate() + 3);
+
         setOrderDetails({
           orderId: data.order._id,
           total: data.order.totalPrice,
-          date: new Date().toLocaleDateString()
+          date: new Date().toLocaleDateString(),
+          deliveryDate: deliveryDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })
         });
         setShowOrderModal(true);
-        
         clearCart();
-        
-        setTimeout(() => {
-          navigate('/orders');
-        }, 3000);
       } else {
         setError(data.message || 'Failed to place order');
       }
@@ -201,39 +205,112 @@ const CheckoutPage = () => {
       <main>
         {showOrderModal && (
           <div className="modal-overlay">
-            <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-content order-success-modal" style={{ maxWidth: '550px' }}>
               <div style={{ textAlign: 'center' }}>
                 <div style={{
-                  width: '80px',
-                  height: '80px',
-                  background: 'var(--success)',
+                  width: '90px',
+                  height: '90px',
+                  background: 'linear-gradient(135deg, var(--success), var(--primary))',
                   borderRadius: '50%',
                   margin: '0 auto 24px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.15)'
                 }}>
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                  <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                 </div>
-                <h2 style={{ marginBottom: '12px', color: 'var(--success)' }}>Order Placed Successfully!</h2>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
-                  Thank you for your order. Your order details have been sent to your email.
+                <h2 style={{ 
+                  marginBottom: '12px', 
+                  color: 'var(--text-primary)', 
+                  fontSize: '28px',
+                  fontWeight: '800'
+                }}>
+                  Order Placed Successfully!
+                </h2>
+                <p style={{ 
+                  color: 'var(--text-secondary)', 
+                  marginBottom: '32px',
+                  fontSize: '16px',
+                  lineHeight: '1.6'
+                }}>
+                  Thank you for your order! Your order has been confirmed and will be delivered soon.
                 </p>
-                <div style={{ background: 'var(--bg-elevated)', padding: '20px', borderRadius: '8px', marginBottom: '24px' }}>
-                  <p style={{ margin: '0 0 8px 0', color: 'var(--text-muted)', fontSize: '13px' }}>Order ID</p>
-                  <p style={{ margin: '0', fontSize: '18px', fontWeight: '700' }}>
-                    #{orderDetails?.orderId?.slice(-8)}
-                  </p>
-                  <p style={{ margin: '12px 0 0 0', color: 'var(--text-muted)', fontSize: '13px' }}>Total Amount</p>
-                  <p style={{ margin: '0', fontSize: '24px', fontWeight: '800', color: 'var(--primary)' }}>
-                    ${orderDetails?.total?.toFixed(2)}
-                  </p>
+
+                <div style={{ 
+                  background: 'var(--bg-elevated)', 
+                  padding: '24px', 
+                  borderRadius: '12px', 
+                  marginBottom: '24px',
+                  border: '1px solid var(--border)'
+                }}>
+                  <div style={{ marginBottom: '16px' }}>
+                    <p style={{ margin: '0 0 6px 0', color: 'var(--text-muted)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Order ID
+                    </p>
+                    <p style={{ margin: '0', fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                      #{orderDetails?.orderId?.slice(-8)}
+                    </p>
+                  </div>
+
+                  <div style={{ 
+                    height: '1px', 
+                    background: 'var(--border)', 
+                    margin: '16px 0' 
+                  }}></div>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <p style={{ margin: '0 0 6px 0', color: 'var(--text-muted)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Total Amount
+                    </p>
+                    <p style={{ margin: '0', fontSize: '28px', fontWeight: '900', color: 'var(--primary)' }}>
+                      ${orderDetails?.total?.toFixed(2)}
+                    </p>
+                  </div>
+
+                  <div style={{ 
+                    height: '1px', 
+                    background: 'var(--border)', 
+                    margin: '16px 0' 
+                  }}></div>
+
+                  <div>
+                    <p style={{ margin: '0 0 6px 0', color: 'var(--text-muted)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Estimated Delivery
+                    </p>
+                    <p style={{ margin: '0', fontSize: '16px', fontWeight: '700', color: 'var(--success)' }}>
+                      📦 {orderDetails?.deliveryDate}
+                    </p>
+                  </div>
                 </div>
-                <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-                  Redirecting to orders page in 3 seconds...
+
+                <p style={{ 
+                  fontSize: '14px', 
+                  color: 'var(--text-muted)', 
+                  marginBottom: '24px',
+                  lineHeight: '1.5'
+                }}>
+                  Order details and tracking information have been sent to your email.
                 </p>
+
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <Link 
+                    to="/products" 
+                    className="btn-secondary"
+                    style={{ flex: 1, textAlign: 'center', padding: '14px' }}
+                  >
+                    Continue Shopping
+                  </Link>
+                  <Link 
+                    to="/orders" 
+                    className="btn-primary"
+                    style={{ flex: 1, textAlign: 'center', padding: '14px' }}
+                  >
+                    My Orders
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -243,7 +320,7 @@ const CheckoutPage = () => {
           <section className="checkout-page">
             <div className="container">
               <h1 style={{ marginBottom: '32px', fontSize: '42px' }}>Checkout</h1>
-              
+
               {error && (
                 <div style={{ 
                   padding: '16px', 
@@ -255,7 +332,7 @@ const CheckoutPage = () => {
                   {error}
                 </div>
               )}
-              
+
               <div className="checkout-container">
                 <form onSubmit={handleSubmit}>
                   <div className="checkout-section">
@@ -263,7 +340,7 @@ const CheckoutPage = () => {
 
                     {savedAddresses.length > 0 && (
                       <div style={{ marginBottom: '24px' }}>
-                        <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
                           <button
                             type="button"
                             onClick={() => setUseNewAddress(false)}

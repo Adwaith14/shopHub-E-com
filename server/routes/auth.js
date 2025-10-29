@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { protect } = require('../middleware/auth');
+const { protect, admin } = require('../middleware/auth');
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -132,6 +132,26 @@ router.get('/profile', protect, async (req, res) => {
       res.status(500).json({
          success: false,
          message: 'Server error'
+      });
+   }
+});
+
+// @route   GET /api/auth/users
+// @desc    Get all users (ALTERNATIVE ENDPOINT FOR ADMIN)
+// @access  Private/Admin
+router.get('/users', protect, admin, async (req, res) => {
+   try {
+      const users = await User.find({}).select('-password').sort('-createdAt');
+
+      res.json({
+         success: true,
+         users: users
+      });
+   } catch (error) {
+      console.error('Get all users error:', error);
+      res.status(500).json({
+         success: false,
+         message: 'Error fetching users'
       });
    }
 });
