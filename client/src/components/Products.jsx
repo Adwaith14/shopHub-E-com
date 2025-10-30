@@ -46,7 +46,6 @@ const Products = () => {
         <div className="section-header">
           <div>
             <h2>Featured Products</h2>
-            <p className="section-subtitle">Handpicked for you</p>
           </div>
           <a href="#" className="link-view-all">View All Products →</a>
         </div>
@@ -60,9 +59,6 @@ const Products = () => {
               )}
               <div className="product-image-wrapper">
                 <img src={product.image} alt={product.name} />
-                <div className="product-quick-view">
-                  <button className="btn-quick-view">Quick View</button>
-                </div>
               </div>
               <div className="product-info">
                 <span className="product-category">{product.category}</span>

@@ -47,7 +47,7 @@ const Categories = () => {
               </div>
               <div className="category-info">
                 <h3>{category.name}</h3>
-                <p>{category.count}</p>
+                <p className='coloo'>{category.count}</p>
               </div>
             </a>
           ))}

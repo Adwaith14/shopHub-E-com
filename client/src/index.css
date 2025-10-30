@@ -978,14 +978,14 @@ img {
 }
 
 .btn-signin {
-  color: var(--text-secondary);
-  background: transparent;
+  background: var(--primary);
+  color: var(--color-btn-primary-text);
   border: 1px solid var(--border);
 }
 
 .btn-signin:hover {
-  background: var(--bg-card);
-  color: var(--text-primary);
+  background: var(--primary);
+  color: var(--color-btn-primary-text);
 }
 
 .btn-signup {
@@ -5176,4 +5176,57 @@ button:not(:disabled):active {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+:root {
+--color-background: #f6f9fb !important;
+--color-surface: #ffffff !important;
+--color-primary: #3575d3 !important;
+--color-primary-hover: #235aac !important;
+--color-primary-active: #1a4373 !important;
+--color-secondary: #eaf3fc !important;
+--color-secondary-hover: #d0e2f2 !important;
+--color-secondary-active: #b0cde0 !important;
+--color-accent: #fecd1a !important;
+--color-success: #21b87a !important;
+--color-error: #f55353 !important;
+--color-warning: #fdd835 !important;
+--color-info: #4bb6f7 !important;
+--color-border: #e1e7ec !important;
+--color-btn-primary-text: #ffffff !important;
+--color-card-border: #e1e7ec !important;
+--color-card-border-inner: #e5ebf0 !important;
+--color-focus-ring: rgba(53,117,211,0.1) !important;
+--color-select-caret: #3575d3 !important;
+--color-text: #23272b !important;
+--color-text-secondary: #575b62 !important;
+--color-text-muted: #aab4bd !important;
+--primary: #3575d3 !important;
+--primary-dark: #235aac !important;
+--primary-light: #82aaff !important;
+--accent: #fecd1a !important;
+--success: #21b87a !important;
+--error: #f55353 !important;
+--bg-dark: #e8eef3 !important;
+--bg-card: #ffffff !important;
+--bg-elevated: #f6f9fb !important;
+--text-primary: #23272b !important;
+--text-secondary: #575b62 !important;
+--text-muted: #aab4bd !important;
+--border: #e1e7ec !important;
+--shadow: 0 2px 8px rgba(53,117,211,0.08) !important;
+--shadow-md: 0 4px 16px rgba(53,117,211,0.10) !important;
+--shadow-lg: 0 8px 32px rgba(53,117,211,0.14) !important;
+--shadow-inset-sm: inset 0 1px 0 #f1f5f7 !important;
+--btn-primary: #3575d3 !important;
+--btn-secondary: #eaf3fc !important;
+--btn-outline: #3575d3 !important;
+}
+.coloo{
+  color: lightblue!important;
+}
+.hero-tag{
+  color: blue!important;
+}
+#tenk,#hapcus,#five,#pro,#fif,#bran,#featicon{
+  color: #4949b3!important;
 }

@@ -6,7 +6,7 @@ const Hero = () => {
       <div className="container">
         <div className="hero-container">
           <div className="hero-content">
-            <span className="hero-tag">✨ New Fall Collection 2025</span>
+            <span className="hero-tag">💠 New Fall Collection 2025</span>
             <h1>Redefine Your Style Statement</h1>
             <p>
               Discover curated fashion pieces that blend timeless elegance with
@@ -34,18 +34,18 @@ const Hero = () => {
         <div className="hero-stats-wrapper">
           <div className="hero-stats">
             <div className="stat-item">
-              <h3>10k+</h3>
-              <p>Happy Customers</p>
+              <h3 id='tenk'>10k+</h3>
+              <p id='hapcus'>Happy Customers</p>
             </div>
             <div className="stat-divider"></div>
             <div className="stat-item">
-              <h3>500+</h3>
-              <p>Products</p>
+              <h3 id='five'>500+</h3>
+              <p id='pro'>Products</p>
             </div>
             <div className="stat-divider"></div>
             <div className="stat-item">
-              <h3>50+</h3>
-              <p>Brands</p>
+              <h3 id='fif'>50+</h3>
+              <p id='bran'>Brands</p>
             </div>
           </div>
         </div>

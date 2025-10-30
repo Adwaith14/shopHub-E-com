@@ -116,7 +116,7 @@ const Navbar = () => {
               </div>
             ) : (
               <>
-                <button onClick={openLogin} className="btn-signin desktop-only">Sign In</button>
+                <button onClick={openLogin} id='signinbut' className="btn-signin desktop-only">Sign In</button>
                 <button onClick={openRegister} className="btn-signup desktop-only">Sign Up</button>
               </>
             )}
